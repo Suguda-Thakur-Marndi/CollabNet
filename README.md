@@ -1,41 +1,62 @@
 # CollabNet
 
-CollabNet is a project workspace currently containing a Vite + React frontend application.
+CollabNet contains a React frontend and a Node.js backend for real-time collaboration.
 
 ## Project Structure
 
-- `Frontend/` - React application built with Vite
+- `Frontend/` - Vite + React client application
+- `Backend/` - Express + Socket.IO server
 
 ## Prerequisites
 
-- Node.js 18+ (recommended)
-- npm 9+
+- Node.js 18 or newer
+- npm 9 or newer
 
-## Getting Started
+## Setup
 
-1. Open a terminal in the `Frontend` folder:
-   ```bash
-   cd Frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+Install dependencies for both apps:
 
-## Available Scripts (Frontend)
+```bash
+cd Frontend
+npm install
 
-Run these inside the `Frontend` folder:
+cd ../Backend
+npm install
+```
+
+## Run the Project
+
+Start frontend and backend in separate terminals.
+
+Terminal 1 (frontend):
+
+```bash
+cd Frontend
+npm run dev
+```
+
+Terminal 2 (backend):
+
+```bash
+cd Backend
+node server.js
+```
+
+By default:
+
+- Frontend runs on Vite's dev server (usually `http://localhost:5173`)
+- Backend runs on `http://localhost:3000`
+
+## Frontend Scripts
+
+Run inside `Frontend/`:
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run preview` - Preview the production build
-- `npm run lint` - Run lint checks
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-## Notes
+## Backend Notes
 
-- Main frontend source code is inside `Frontend/src`.
-- Static assets are inside `Frontend/public`.
+- Server entry file: `Backend/server.js`
+- Uses `express`, `socket.io`, and `y-socket.io`
