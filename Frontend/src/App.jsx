@@ -1,6 +1,10 @@
 import Editor from '@monaco-editor/react'
+import { MonacoBinding } from 'y-monaco'
 
 const App = () => {
+  const handleMount=(editor)=>{
+    
+  }
   return (
     <main className='h-screen w-full p-4 bg-gray-950 flex gap-4'> 
      <aside className='h-full w-1/4 rounded-lg bg-amber-50'>
