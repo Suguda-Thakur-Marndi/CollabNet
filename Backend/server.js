@@ -1,7 +1,7 @@
 import express from "express"
 import { createServer } from "http"
 import { Server } from "socket.io"
-import { setupWSConnection, YSocketIO } from "y-socket.io/dist/server"
+import { YSocketIO } from "y-socket.io/dist/server"
 
 const app = express()
 const httpServer = createServer(app)

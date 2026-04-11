@@ -43,17 +43,20 @@ const App = () => {
   }
   const handlejoin=(e)=>{
     e.preventDefault()
+    setUserName(e.target.userName)
     
   }
   if(!userName)
     return <main className='h-screen w-full p-4 bg-gray-950 flex gap-4 items-center justify-center'>
-      <form action=""></form>
+      <form onSubmit={handlejoin}>
       <input
       type='text'
       placeholder='Enter your name'
       value={userName}
       onChange={(e) => setUserName(e.target.value)}
       />
+      <button className='bg-red-600' type='submit'>Join</button>
+      </form>
     </main>
   return (
     <main className='h-screen w-full p-4 bg-gray-950 flex gap-4'> 
