@@ -7,6 +7,7 @@ const App = () => {
   const editRef = useRef(null)
   const providerRef = useRef(null)
   const bindingRef = useRef(null)
+  const [draftName, setDraftName] = useState("")
   const [userName, setUserName] = useState("")
   const ydoc = useMemo(() => new Y.Doc(), [])
   const ytext = useMemo(() => ydoc.getText('monaco'), [ydoc])
@@ -26,8 +27,13 @@ const App = () => {
 
   const handleMount = (editor) => {
     editRef.current = editor
-    const provider = new SocketIOProvider("https://localhost:3000", "monaco", ydoc, {
+    const provider = new SocketIOProvider("http://localhost:3000", "monaco", ydoc, {
       autoConnect: true
+    })
+
+    provider.awareness.setLocalStateField('user', {
+      name: userName,
+      color: '#ef4444'
     })
 
     providerRef.current = provider
@@ -41,37 +47,39 @@ const App = () => {
 
     bindingRef.current = monacoBinding
   }
-  const handlejoin=(e)=>{
+  const handlejoin = (e) => {
     e.preventDefault()
-    setUserName(e.target.userName)
-    
+    const trimmedName = draftName.trim()
+    if (!trimmedName) return
+    setUserName(trimmedName)
   }
   if(!userName)
     return <main className='h-screen w-full p-4 bg-gray-950 flex gap-4 items-center justify-center'>
       <form onSubmit={handlejoin}>
       <input
+      className='bg-red-600'
       type='text'
+      name='userName'
       placeholder='Enter your name'
-      value={userName}
-      onChange={(e) => setUserName(e.target.value)}
+      value={draftName}
+      onChange={(e) => setDraftName(e.target.value)}
       />
       <button className='bg-red-600' type='submit'>Join</button>
       </form>
     </main>
   return (
     <main className='h-screen w-full p-4 bg-gray-950 flex gap-4'> 
-    <form action="">
      <aside className='h-full w-1/4 rounded-lg bg-amber-50'>
      </aside>
-     <section className='w-3/4 rounded-lg bg-neutral-600'>
-     <Editor height="100%"
-     defaultLanguage='javascript'
-     defaultValue='// some comment'
-     theme='vs-dark'
-     onMount={handleMount}/>
-
+     <section className='h-full w-3/4 rounded-lg bg-neutral-600 overflow-hidden'>
+      <Editor
+        height="100%"
+        defaultLanguage='javascript'
+        defaultValue='// some comment'
+        theme='vs-dark'
+        onMount={handleMount}
+      />
      </section>
-</form>
      
     </main>
   )
