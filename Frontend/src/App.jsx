@@ -3,8 +3,8 @@ import { useRef, useMemo, useEffect, useState } from 'react'
 import * as Y from "yjs"
 import { SocketIOProvider } from "y-socket.io"
 import { MonacoBinding } from "y-monaco"
+
 const App = () => {
-  const editRef = useRef(null)
   const providerRef = useRef(null)
   const bindingRef = useRef(null)
   const [draftName, setDraftName] = useState("")
@@ -26,7 +26,6 @@ const App = () => {
   }, [ydoc])
 
   const handleMount = (editor) => {
-    editRef.current = editor
     const provider = new SocketIOProvider("http://localhost:3000", "monaco", ydoc, {
       autoConnect: true
     })
@@ -40,22 +39,24 @@ const App = () => {
 
     const monacoBinding = new MonacoBinding(
       ytext,
-      editRef.current.getModel(),
+      editor.getModel(),
       new Set([editor]),
       provider.awareness
     )
 
     bindingRef.current = monacoBinding
   }
-  const handlejoin = (e) => {
+
+  const handleJoin = (e) => {
     e.preventDefault()
     const trimmedName = draftName.trim()
     if (!trimmedName) return
     setUserName(trimmedName)
   }
-  if(!userName)
+
+  if (!userName)
     return <main className='h-screen w-full p-4 bg-gray-950 flex gap-4 items-center justify-center'>
-      <form onSubmit={handlejoin}>
+      <form onSubmit={handleJoin}>
       <input
       className='bg-red-600'
       type='text'
