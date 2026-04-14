@@ -1,20 +1,25 @@
 # CollabNet
 
-CollabNet contains a React frontend and a Node.js backend for real-time collaboration.
+CollabNet is a real-time collaborative code editor built with:
+
+- React + Vite frontend
+- Monaco Editor for in-browser code editing
+- Node.js + Express backend
+- Socket.IO + Yjs (via y-socket.io) for live collaboration
 
 ## Project Structure
 
-- `Frontend/` - Vite + React client application
-- `Backend/` - Express + Socket.IO server
+- `Frontend/` - React client (Vite)
+- `Backend/` - Express + Socket.IO collaboration server
 
 ## Prerequisites
 
-- Node.js 18 or newer
-- npm 9 or newer
+- Node.js 18+
+- npm 9+
 
-## Setup
+## Installation
 
-Install dependencies for both apps:
+Install dependencies in both apps.
 
 ```bash
 cd Frontend
@@ -24,39 +29,64 @@ cd ../Backend
 npm install
 ```
 
-## Run the Project
+## Running Locally
 
-Start frontend and backend in separate terminals.
+Run frontend and backend in separate terminals.
 
-Terminal 1 (frontend):
+Frontend:
 
 ```bash
 cd Frontend
 npm run dev
 ```
 
-Terminal 2 (backend):
+Backend:
 
 ```bash
 cd Backend
-node server.js
+npm start
 ```
 
-By default:
+Default local URLs:
 
-- Frontend runs on Vite's dev server (usually `http://localhost:5173`)
-- Backend runs on `http://localhost:3000`
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
 
-## Frontend Scripts
+## How to Use
 
-Run inside `Frontend/`:
+1. Start both servers.
+2. Open the frontend in your browser.
+3. Enter a username in the join form.
+4. Open the same app in another tab/window with a different username to test live collaboration.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+The editor content is synced across connected clients in real time.
+
+## Available Scripts
+
+Frontend (`Frontend/`):
+
+- `npm run dev` - Start Vite dev server
+- `npm run build` - Build production assets
+- `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint
 
-## Backend Notes
+Backend (`Backend/`):
 
-- Server entry file: `Backend/server.js`
-- Uses `express`, `socket.io`, and `y-socket.io`
+- `npm start` - Start the server (`server.js`)
+
+## Health Check
+
+Backend health endpoint:
+
+- `GET /health` -> http://localhost:3000/health
+
+## Tech Stack
+
+- React 19
+- Vite 7
+- Monaco Editor
+- Yjs
+- y-monaco
+- Socket.IO
+- y-socket.io
+- Express
