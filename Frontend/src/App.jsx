@@ -5,15 +5,16 @@ import { SocketIOProvider } from "y-socket.io"
 import { MonacoBinding } from "y-monaco"
 
 const App = () => {
-  const editorRef=useRef(null)
+  const editorRef = useRef(null)
   const providerRef = useRef(null)
   const bindingRef = useRef(null)
   const [userName, setUserName] = useState(()=>{
     return new URLSearchParams(window.location.search).get("username")
   })
+  const [users, setUsers] = useState([])
   const [draftName, setDraftName] = useState('')
   const ydoc = useMemo(() => new Y.Doc(), [])
-  const ytext = useMemo(() => ydoc.getText('monaco'), [ydoc])
+  const yText = useMemo(() => ydoc.getText('monaco'), [ydoc])
 
   useEffect(() => {
     return () => {
@@ -28,28 +29,65 @@ const App = () => {
     }
   }, [ydoc])
 
+  useEffect(() => {
+    if (userName && editorRef.current && !providerRef.current) {
+      const provider = new SocketIOProvider("http://localhost:3000", "monaco", ydoc, {
+        autoConnect: true,
+      })
+
+      provider.awareness.setLocalStateField("user", { username: userName })
+
+      provider.awareness.on("change", () => {
+        const states = Array.from(provider.awareness.getStates().values())
+
+        setUsers(
+          states
+            .map((state) => state.user || {})
+            .filter((user) => Boolean(user.username))
+        )
+      })
+
+      const monacoBinding = new MonacoBinding(
+        yText,
+        editorRef.current.getModel(),
+        new Set([editorRef.current]),
+        provider.awareness
+      )
+
+      providerRef.current = provider
+      bindingRef.current = monacoBinding
+    }
+  }, [userName, ydoc, yText])
+
   const handleMount = (editor) => {
-    editorRef.current=editor
-    
-    const provider = new SocketIOProvider("http://localhost:3000", "monaco", ydoc, {
-      autoConnect: true
-    })
+    editorRef.current = editor
+    if (userName && !providerRef.current) {
+      const provider = new SocketIOProvider("http://localhost:3000", "monaco", ydoc, {
+        autoConnect: true,
+      })
 
-    provider.awareness.setLocalStateField('user', {
-      name: userName,
-      color: '#ef4444'
-    })
+      provider.awareness.setLocalStateField("user", { username: userName })
 
-    providerRef.current = provider
+      provider.awareness.on("change", () => {
+        const states = Array.from(provider.awareness.getStates().values())
 
-    const monacoBinding = new MonacoBinding(
-      ytext,
-      editor.getModel(),
-      new Set([editor]),
-      provider.awareness
-    )
+        setUsers(
+          states
+            .map((state) => state.user || {})
+            .filter((user) => Boolean(user.username))
+        )
+      })
 
-    bindingRef.current = monacoBinding
+      const monacoBinding = new MonacoBinding(
+        yText,
+        editorRef.current.getModel(),
+        new Set([editorRef.current]),
+        provider.awareness
+      )
+
+      providerRef.current = provider
+      bindingRef.current = monacoBinding
+    }
   }
 
   const handleJoin = (e) => {
