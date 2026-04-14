@@ -77,6 +77,11 @@ const App = () => {
             .filter((user) => Boolean(user.username))
         )
       })
+      function handelbefore(){
+        provider.awareness.setLocalStateField("user",null)
+
+      }
+      window.addEventListener("beforeunload",handelbefore)
 
       const monacoBinding = new MonacoBinding(
         yText,
@@ -87,6 +92,17 @@ const App = () => {
 
       providerRef.current = provider
       bindingRef.current = monacoBinding
+
+      return()=>{
+        if (bindingRef.current) {
+          bindingRef.current.destroy()
+        }
+        if (providerRef.current) {
+          providerRef.current.disconnect()
+          providerRef.current.destroy()
+        }
+        window.removeEventListener("beforeunload",handelbefore)
+      }
     }
   }
 
