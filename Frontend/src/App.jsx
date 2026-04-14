@@ -5,10 +5,13 @@ import { SocketIOProvider } from "y-socket.io"
 import { MonacoBinding } from "y-monaco"
 
 const App = () => {
+  const editorRef=useRef(null)
   const providerRef = useRef(null)
   const bindingRef = useRef(null)
-  const [draftName, setDraftName] = useState("")
-  const [userName, setUserName] = useState("")
+  const [userName, setUserName] = useState(()=>{
+    return new URLSearchParams(window.location.search).get("username")
+  })
+  const [draftName, setDraftName] = useState('')
   const ydoc = useMemo(() => new Y.Doc(), [])
   const ytext = useMemo(() => ydoc.getText('monaco'), [ydoc])
 
@@ -26,6 +29,8 @@ const App = () => {
   }, [ydoc])
 
   const handleMount = (editor) => {
+    editorRef.current=editor
+    
     const provider = new SocketIOProvider("http://localhost:3000", "monaco", ydoc, {
       autoConnect: true
     })
@@ -49,9 +54,10 @@ const App = () => {
 
   const handleJoin = (e) => {
     e.preventDefault()
-    const trimmedName = draftName.trim()
-    if (!trimmedName) return
-    setUserName(trimmedName)
+    const name = e.target.userName.value.trim()
+    if (!name) return
+    setUserName(name)
+    window.history.pushState({},"","?username="+name)
   }
 
   if (!userName)
