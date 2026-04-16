@@ -67,6 +67,12 @@ const App = () => {
       })
 
       provider.awareness.setLocalStateField("user", { username: userName })
+      const states = Array.from(provider.awareness.getStates().values())
+      setUsers(
+        states
+          .map((state) => state.user || {})
+          .filter((user) => Boolean(user.username))
+      )
 
       provider.awareness.on("change", () => {
         const states = Array.from(provider.awareness.getStates().values())
@@ -130,7 +136,12 @@ const App = () => {
     </main>
   return (
     <main className='h-screen w-full p-4 bg-gray-950 flex gap-4'> 
+
      <aside className='h-full w-1/4 rounded-lg bg-amber-50'>
+     <h2 className='text-2xl font-bold p-4 border-b'>Users</h2>
+     <ul>{users.map(({username}, index)=>(
+      <li key={index}>{username}</li>
+     ))}</ul>
      </aside>
      <section className='h-full w-3/4 rounded-lg bg-neutral-600 overflow-hidden'>
       <Editor
@@ -139,7 +150,7 @@ const App = () => {
         defaultValue='// some comment'
         theme='vs-dark'
         onMount={handleMount}
-      />
+      />             
      </section>
      
     </main>
