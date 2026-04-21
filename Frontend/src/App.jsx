@@ -3,7 +3,7 @@ import { useRef, useMemo, useEffect, useState } from 'react'
 import * as Y from "yjs"
 import { SocketIOProvider } from "y-socket.io"
 import { MonacoBinding } from "y-monaco"
-{}
+
 const App = () => {
   const editorRef = useRef(null)
   const providerRef = useRef(null)
