@@ -204,7 +204,7 @@ const App = () => {
       }
     }
   }
-@
+
   const handleJoin = (e) => {
     e.preventDefault()
     const name = e.target.userName.value.trim()
