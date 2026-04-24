@@ -371,3 +371,24 @@ const App = () => {
 }
 
 export default App
+import java.io.*;
+
+class FileReaderDemo {
+    public static void main(String args[]) {
+        try {
+            FileReader fr = new FileReader("FileReaderDemo.java");
+            BufferedReader br = new BufferedReader(fr);
+
+            String s;
+
+            // read file line by line
+            while ((s = br.readLine()) != null) {
+                System.out.println(s);
+            }
+
+            br.close(); // closes both br and fr
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
