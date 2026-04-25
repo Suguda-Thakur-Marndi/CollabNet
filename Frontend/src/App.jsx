@@ -56,12 +56,8 @@ const App = () => {
       }
       window.addEventListener("beforeunload", handleBeforeUnload)
 
-      const monacoBinding = new MonacoBinding(
-        yText,
-        editor.getModel(),
-        new Set([editor]),
-        provider.awareness
-      )
+     
+      
 
       providerRef.current = provider
       bindingRef.current = monacoBinding
@@ -127,3 +123,4 @@ const App = () => {
 export default App
 
 
+ 
