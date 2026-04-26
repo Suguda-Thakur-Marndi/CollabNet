@@ -17,7 +17,8 @@ const io = new Server(httpServer, {
 const ySocketIO=new YSocketIO(io)
 ySocketIO.initialize()
 
-app.get('/',(_req,res)=>{
+app.get('/',(req,res)=>{
+
     res.status(200).json({
         message:"hello world",
         success:true
@@ -25,7 +26,7 @@ app.get('/',(_req,res)=>{
 })
 
 
-app.get('/health',(_req,res)=>{
+app.get('/health',(req,res)=>{
     res.status(200).json({
         message:"hello world",
         success:true
