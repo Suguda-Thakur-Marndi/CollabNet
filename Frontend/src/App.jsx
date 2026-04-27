@@ -61,7 +61,12 @@ const App = () => {
       
 
       providerRef.current = provider
-      bindingRef.current = monacoBinding
+      bindingRef.current = new MonacoBinding(
+        yText,
+        editor.getModel(),
+        new Set([editor]),
+        provider.awareness
+      )
 
       return () => {
         if (bindingRef.current) {
