@@ -29,6 +29,7 @@ const App = () => {
       ydoc.destroy()
     }
   }, [ydoc])
+  .
 
   const handleMount = (editor) => {
     editorRef.current = editor
