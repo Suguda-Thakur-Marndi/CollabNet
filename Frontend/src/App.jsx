@@ -25,7 +25,7 @@ const App = () => {
       if (providerRef.current) {
         providerRef.current.disconnect()
         providerRef.current.destroy()
-             }
+}
       ydoc.destroy()
     }
   }, [ydoc])
