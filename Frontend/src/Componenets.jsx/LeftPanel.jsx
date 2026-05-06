@@ -1,4 +1,4 @@
-const LeftPanel = ({ width, onDividerMouseDown }) => {
+const LeftPanel = ({ width, onDivider }) => {
   return (
     <>
       <aside 
@@ -11,7 +11,7 @@ const LeftPanel = ({ width, onDividerMouseDown }) => {
 
       <div
         className='w-1 bg-gray-600 hover:bg-green-500 cursor-col-resize transition-colors'
-        onMouseDown={onDividerMouseDown}
+        on={onDivider}
       />
     </>
   )
