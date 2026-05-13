@@ -6,6 +6,7 @@ import { MonacoBinding } from "y-monaco"
 import LeftPanel from './Componenets.jsx/LeftPanel'
 import RightPanel from './Componenets.jsx/RightPanel'
 import TopBar from './Componenets.jsx/TopBar'
+import Output from './Componenets.jsx/Output'
 
 const App = () => {
   const editorRef = useRef(null)
@@ -13,6 +14,7 @@ const App = () => {
   const bindingRef = useRef(null)
   const containerRef = useRef(null)
   const isDraggingRef = useRef(false)
+  const [value, setValue] = useState("")
   const activeDividerRef = useRef(null)
   const [userName, setUserName] = useState(() => {
     return new URLSearchParams(window.location.search).get("username")
@@ -191,12 +193,14 @@ const App = () => {
           style={{ width: `${editorWidth}%` }}
         >
           <Editor
-            height="100%"
+            height="70%"
             defaultLanguage='javascript'
             defaultValue='// some comment'
             theme='vs-dark'
             onMount={handleMount}
+            onChange={(newValue) => setValue(newValue || "")}
           />
+          <Output editorRe={editorRef}/>
         </section>
         
         <RightPanel 
