@@ -11,7 +11,7 @@ const LeftPanel = ({ width, onDivider }) => {
 
       <div
         className='w-1 bg-gray-600 hover:bg-green-500 cursor-col-resize transition-colors'
-        on={onDivider}
+        onMouseDown={onDivider}
       />
     </>
   )

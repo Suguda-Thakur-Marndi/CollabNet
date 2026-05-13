@@ -1,36 +1,34 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { useToast } from '@chakra-ui/react'
 import { execute } from '../api'
 
-const Output = () => {
-    const toast =useToast();
-    const [output, setoutput] = useState(null)
-    const runcode=(promt)=>{
-
-        const runcode=async()=>{
-            const sourcecode=editerRef.current.getvalue();
-            if(!sourcecode)return;
-            try{
-                const(run:result)=await executecode(sourcecode);
-                setoutput(result.output)
-
-            }
-            catch(error){
+const Output = ({ editerRef }) => {
+    const toast = useToast();
+    const [output, setOutput] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [isError, setIsError] = useState(false)
+    const runCode = (prompt) => {
+        setIsLoading(true)
+        const executeCode = async () => {
+            const sourceCode = editerRef.current.getValue();
+            if (!sourceCode) return;
+            try {
+                const { result } = await execute(sourceCode);
+                setOutput(result.output)
+                result.stderr ? setIsError(true) : setIsError(false)
+            } catch (error) {
                 console.log(error);
                 toast({
-                    titel:"An error occurred"
-                    discription:error.message|| "Unalble to run Code"
-                    status:error,
-                duration:6000                })
-
+                    title: "An error occurred",
+                    description: error.message || "Unable to run Code",
+                    status: "error",
+                    duration: 6000
+                })
+            } finally {
+                setIsLoading(false)
             }
-            finally{
-                setLoding(false)
-            }
-            
         }
-        
-        
-
+        executeCode()
     }
     
   return (
