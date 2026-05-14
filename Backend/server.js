@@ -47,31 +47,22 @@ app.post('/execute', (req, res) => {
     }
 
     try {
+        let output = '';
+        
         const vm = new VM({
             timeout: 3000,
             sandbox: {
                 console: {
                     log: (...args) => {
-                        return args.map(arg => 
+                        output += args.map(arg => 
                             typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-                        ).join(' ');
+                        ).join(' ') + '\n';
                     }
                 }
             }
         });
 
-    
-        let output = '';
-        const originalLog = console.log;
-        console.log = (...args) => {
-            output += args.map(arg => 
-                typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-            ).join(' ') + '\n';
-        };
-
         const result = vm.run(code);
-        
-        console.log = originalLog;
 
         res.status(200).json({
             success: true,

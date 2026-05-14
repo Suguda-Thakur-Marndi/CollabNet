@@ -22,8 +22,8 @@ const App = () => {
   })
   const [users, setUsers] = useState([])
   const [draftName, setDraftName] = useState('')
-  const [leftPanelWidth, setLeftPanelWidth] = useState(20)
-  const [editorWidth, setEditorWidth] = useState(60)
+  const [leftPanelWidth, setLeftPanelWidth] = useState(15)
+  const [editorWidth, setEditorWidth] = useState(70)
   const ydoc = useMemo(() => new Y.Doc(), [])
   const yText = useMemo(() => ydoc.getText('monaco'), [ydoc])
 
@@ -44,34 +44,34 @@ const App = () => {
     isDraggingRef.current = true
     activeDividerRef.current = 'left'
 
-    const HandelMouse = (e) => {
+    const HandleMouse = (e) => {
       if (!isDraggingRef.current || !containerRef.current || activeDividerRef.current !== 'left') return
       
       const container = containerRef.current
       const containerRect = container.getBoundingClientRect()
       const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100
       
-      if (newWidth > 5 && newWidth < 70) {
+      if (newWidth > 5 && newWidth < 40) {
         setLeftPanelWidth(newWidth)
       }
     }
 
-    const HandelMouseUp = () => {
+    const HandleMouseUp = () => {
       isDraggingRef.current = false
       activeDividerRef.current = null
-      document.removeEventListener('mousemove', HandelMouse)
-      document.removeEventListener('mouseup', HandelMouseUp)
+      document.removeEventListener('mousemove', HandleMouse)
+      document.removeEventListener('mouseup', HandleMouseUp)
     }
 
-    document.addEventListener('mousemove', HandelMouse)
-    document.addEventListener('mouseup', HandelMouseUp)
+    document.addEventListener('mousemove', HandleMouse)
+    document.addEventListener('mouseup', HandleMouseUp)
   }
 
   const handleRightDividerMouseDown = () => {
     isDraggingRef.current = true
     activeDividerRef.current = 'right'
 
-    const HandelMouse = (e) => {
+    const HandleMouse = (e) => {
       if (!isDraggingRef.current || !containerRef.current || activeDividerRef.current !== 'right') return
       
       const container = containerRef.current
@@ -82,20 +82,20 @@ const App = () => {
       const maxEditorWidth = 100 - leftPanelWidth - minRightPanelWidth
       const calculatedEditorWidth = newWidth - leftPanelWidth
       
-      if (calculatedEditorWidth > 20 && calculatedEditorWidth < maxEditorWidth) {
+      if (calculatedEditorWidth > 30 && calculatedEditorWidth < maxEditorWidth) {
         setEditorWidth(calculatedEditorWidth)
       }
     }
 
-    const HandelMouseUp = () => {
+    const HandleMouseUp = () => {
       isDraggingRef.current = false
       activeDividerRef.current = null
-      document.removeEventListener('mousemove', HandelMouse)
-      document.removeEventListener('mouseup', HandelMouseUp)
+      document.removeEventListener('mousemove', HandleMouse)
+      document.removeEventListener('mouseup', HandleMouseUp)
     }
 
-    document.addEventListener('mousemove', HandelMouse)
-    document.addEventListener('mouseup', HandelMouseUp)
+    document.addEventListener('mousemove', HandleMouse)
+    document.addEventListener('mouseup', HandleMouseUp)
   }
   
 
@@ -171,43 +171,65 @@ const App = () => {
 
   if (!userName)
     return (
-      <main className='h-screen w-full p-4 bg-gray-950 flex gap-4 items-center justify-center'>
-        <form onSubmit={handleJoin}>
-          <input
-            className='bg-red-600'
-            type='text'
-            name='userName'
-            placeholder='Enter your name'
-            value={draftName}
-            onChange={(e) => setDraftName(e.target.value)}
-          />
-          <button className='bg-red-600' type='submit'>Join</button>
-        </form>
+      <main className='h-screen w-full bg-slate-950 flex items-center justify-center'>
+        <div className='w-full max-w-md px-6'>
+          <div className='mb-8 text-center'>
+            <h1 className='text-4xl font-bold text-white mb-2'>CollabNet</h1>
+            <p className='text-slate-400'>Real-time collaborative code editor</p>
+          </div>
+          <form onSubmit={handleJoin} className='space-y-4'>
+            <div>
+              <input
+                className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition'
+                type='text'
+                name='userName'
+                placeholder='Enter your name'
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <button 
+              className='w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200'
+              type='submit'
+            >
+              Join Workspace
+            </button>
+          </form>
+        </div>
       </main>
     )
   return (
-    <div className='h-screen w-full flex flex-col bg-gray-950'>
-      <TopBar onLeaveRoom={handleLeaveRoom} onRunCode={handleRunCode} />
+    <div className='h-screen w-full flex flex-col bg-slate-950'>
+      <TopBar onLeaveRoom={handleLeaveRoom} onRunCode={handleRunCode} userName={userName} />
       
-      <main className='flex-1 p-4 bg-gray-950 flex gap-4' ref={containerRef}>
+      <main className='flex-1 flex gap-1 bg-slate-950 overflow-hidden' ref={containerRef}>
         <LeftPanel 
           width={leftPanelWidth}
           onDividerMouseDown={handleLeftDividerMouseDown}
         />
         
         <section 
-          className='h-full rounded-lg bg-neutral-600 overflow-hidden'
+          className='h-full bg-slate-800 overflow-hidden flex flex-col'
           style={{ width: `${editorWidth}%` }}
         >
-          <Editor
-            height="70%"
-            defaultLanguage='javascript'
-            defaultValue='// some comment'
-            theme='vs-dark'
-            onMount={handleMount}
-            onChange={(newValue) => setValue(newValue || "")}
-          />
-          <Output editerRef={editorRef} onRunCodeRef={runCodeRef}/>
+          <div className='flex-1 overflow-hidden'>
+            <Editor
+              height="100%"
+              defaultLanguage='javascript'
+              defaultValue='// Welcome to CollabNet\n// Start coding here...'
+              theme='vs-dark'
+              onMount={handleMount}
+              onChange={(newValue) => setValue(newValue || "")}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+              }}
+            />
+          </div>
+          <div className='h-48 border-t border-slate-700 bg-slate-900'>
+            <Output editerRef={editorRef} onRunCodeRef={runCodeRef}/>
+          </div>
         </section>
         
         <RightPanel 
