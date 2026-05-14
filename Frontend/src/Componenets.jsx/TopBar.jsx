@@ -1,4 +1,4 @@
-const TopBar = ({ LeaveRoom }) => {
+const TopBar = ({ onLeaveRoom, onRunCode }) => {
   return (
     <div className='w-full bg-gray-900 text-gray-100 flex items-center justify-between px-6 py-3 border-b border-gray-700 shadow-md'>
       
@@ -11,14 +11,16 @@ const TopBar = ({ LeaveRoom }) => {
       </div>
 
       <div className='flex gap-2'>
-        <button className='flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200'>
+        <button 
+          onClick={onRunCode}
+          className='flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200'>
           ▶ Run Code
         </button>
         <button className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200'>
           Share
         </button>
         <button 
-          onClick={LeaveRoom}
+          onClick={onLeaveRoom}
           className='flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200'
         >
           Leave

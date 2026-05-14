@@ -10,6 +10,7 @@ import Output from './Componenets.jsx/Output'
 
 const App = () => {
   const editorRef = useRef(null)
+  const runCodeRef = useRef(null)
   const providerRef = useRef(null)
   const bindingRef = useRef(null)
   const containerRef = useRef(null)
@@ -162,6 +163,12 @@ const App = () => {
     window.history.pushState({}, "", "/")
   }
 
+  const handleRunCode = () => {
+    if (runCodeRef.current) {
+      runCodeRef.current()
+    }
+  }
+
   if (!userName)
     return (
       <main className='h-screen w-full p-4 bg-gray-950 flex gap-4 items-center justify-center'>
@@ -180,7 +187,7 @@ const App = () => {
     )
   return (
     <div className='h-screen w-full flex flex-col bg-gray-950'>
-      <TopBar onLeaveRoom={handleLeaveRoom} />
+      <TopBar onLeaveRoom={handleLeaveRoom} onRunCode={handleRunCode} />
       
       <main className='flex-1 p-4 bg-gray-950 flex gap-4' ref={containerRef}>
         <LeftPanel 
@@ -200,7 +207,7 @@ const App = () => {
             onMount={handleMount}
             onChange={(newValue) => setValue(newValue || "")}
           />
-          <Output editorRe={editorRef}/>
+          <Output editerRef={editorRef} onRunCodeRef={runCodeRef}/>
         </section>
         
         <RightPanel 
