@@ -7,6 +7,7 @@ import LeftPanel from './Componenets.jsx/LeftPanel'
 import RightPanel from './Componenets.jsx/RightPanel'
 import TopBar from './Componenets.jsx/TopBar'
 import Output from './Componenets.jsx/Output'
+import Room from './Componenets.jsx/Room'
 
 const App = () => {
   const editorRef = useRef(null)
@@ -20,8 +21,10 @@ const App = () => {
   const [userName, setUserName] = useState(() => {
     return new URLSearchParams(window.location.search).get("username")
   })
+  const [roomId, setRoomId] = useState(() => {
+    return new URLSearchParams(window.location.search).get("room")
+  })
   const [users, setUsers] = useState([])
-  const [draftName, setDraftName] = useState('')
   const [leftPanelWidth, setLeftPanelWidth] = useState(15)
   const [editorWidth, setEditorWidth] = useState(70)
   const ydoc = useMemo(() => new Y.Doc(), [])
@@ -35,7 +38,7 @@ const App = () => {
       if (providerRef.current) {
         providerRef.current.disconnect()
         providerRef.current.destroy()
-}
+      }
       ydoc.destroy()
     }
   }, [ydoc])
@@ -101,8 +104,8 @@ const App = () => {
 
   const handleMount = (editor) => {
     editorRef.current = editor
-    if (userName && !providerRef.current) {
-      const provider = new SocketIOProvider("http://localhost:3000", "monaco", ydoc, {
+    if (userName && roomId && !providerRef.current) {
+      const provider = new SocketIOProvider("http://localhost:3000", roomId, ydoc, {
         autoConnect: true,
       })
 
@@ -125,10 +128,6 @@ const App = () => {
       }
       window.addEventListener("beforeunload", handleBeforeUnload)
       
-
-     
-      
-
       providerRef.current = provider
       bindingRef.current = new MonacoBinding(
         yText,
@@ -150,16 +149,23 @@ const App = () => {
     }
   }
 
-  const handleJoin = (e) => {
-    e.preventDefault()
-    const name = e.target.userName.value.trim()
-    if (!name) return
+  const handleJoin = (name, id) => {
+    if (!name.trim() || !id.trim()) return
     setUserName(name)
-    window.history.pushState({}, "", "?username=" + name)
+    setRoomId(id)
+    window.history.pushState({}, "", `?username=${name}&room=${id}`)
+  }
+
+  const handleCreate = (name, id) => {
+    if (!name.trim() || !id.trim()) return
+    setUserName(name)
+    setRoomId(id)
+    window.history.pushState({}, "", `?username=${name}&room=${id}`)
   }
 
   const handleLeaveRoom = () => {
     setUserName(null)
+    setRoomId(null)
     window.history.pushState({}, "", "/")
   }
 
@@ -169,36 +175,11 @@ const App = () => {
     }
   }
 
-  if (!userName)
+  if (!userName || !roomId)
     return (
-      <main className='h-screen w-full bg-slate-950 flex items-center justify-center'>
-        <div className='w-full max-w-md px-6'>
-          <div className='mb-8 text-center'>
-            <h1 className='text-4xl font-bold text-white mb-2'>CollabNet</h1>
-            <p className='text-slate-400'>Real-time collaborative code editor</p>
-          </div>
-          <form onSubmit={handleJoin} className='space-y-4'>
-            <div>
-              <input
-                className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition'
-                type='text'
-                name='userName'
-                placeholder='Enter your name'
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <button 
-              className='w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200'
-              type='submit'
-            >
-              Join Workspace
-            </button>
-          </form>
-        </div>
-      </main>
+      <Room onJoin={handleJoin} onCreate={handleCreate} />
     )
+
   return (
     <div className='h-screen w-full flex flex-col bg-slate-950'>
       <TopBar onLeaveRoom={handleLeaveRoom} onRunCode={handleRunCode} userName={userName} />
