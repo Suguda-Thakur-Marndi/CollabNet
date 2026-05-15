@@ -215,6 +215,7 @@ const App = () => {
         
         <RightPanel 
           users={users}
+          currentUser={userName}
           width={100 - leftPanelWidth - editorWidth}
           onDividerMouseDown={handleRightDividerMouseDown}
         />

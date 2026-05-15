@@ -21,28 +21,29 @@ export function getUrlParams(url = window.location.href) {
 
 const VideoConference = () => {
   const meetingEl = useRef(null);
-  const hasJoined = useRef(false);
+  const zpRef = useRef(null);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
 
   useEffect(() => {
-    if (hasJoined.current || !meetingEl.current) return;
+    if (zpRef.current || !meetingEl.current) return;
 
-    const roomID = getUrlParams().get('roomID') || randomID(5);
+    const roomID = getUrlParams().get('room') || randomID(5);
     const userName = getUrlParams().get('username') || `User-${randomID(3)}`;
+    const userID = randomID(5);
 
     const myMeeting = async (element) => {
-      hasJoined.current = true;
       const appID = parseInt(import.meta.env.VITE_ID);
       const serverSecret = import.meta.env.VITE_SERVER_SECREATE;
-      const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, randomID(5), userName);
+      const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
 
       const zp = ZegoUIKitPrebuilt.create(kitToken);
+      zpRef.current = zp;
       
       zp.joinRoom({
         container: element,
         scenario: {
-          mode: ZegoUIKitPrebuilt.VideoConference,
+          mode: ZegoUIKitPrebuilt.OneONoneCall,
         },
         showPreJoinView: false,
         showRoomTimer: true,
@@ -56,44 +57,56 @@ const VideoConference = () => {
         showTurnOffRemoteCameraButton: false,
         showTurnOffRemoteMicrophoneButton: false,
         showRemoveUserButton: false,
-        
-        onUserUpdate: (users) => {
-          users.forEach(user => {
-            if (user.userID === zp.getLocalUser().userID) {
-              setIsMicOn(user.microphone);
-              setIsCameraOn(user.camera);
+        onUserUpdate: () => {
+            const localUser = zp.getLocalUser();
+            if (localUser) {
+                setIsMicOn(localUser.microphone);
+                setIsCameraOn(localUser.camera);
             }
-          });
         },
       });
 
-      // Set initial state
-      setIsMicOn(zp.isMicrophoneOn());
-      setIsCameraOn(zp.isCameraOn());
+      const localUser = zp.getLocalUser();
+      if (localUser) {
+        setIsMicOn(localUser.microphone);
+        setIsCameraOn(localUser.camera);
+      }
     };
 
     myMeeting(meetingEl.current);
 
+    return () => {
+      if (zpRef.current) {
+        zpRef.current.destroy();
+        zpRef.current = null;
+      }
+    };
   }, []);
 
   const toggleMic = () => {
-    const zp = ZegoUIKitPrebuilt.create(ZegoUIKitPrebuilt.generateKitTokenForTest(parseInt(import.meta.env.VITE_ID), import.meta.env.VITE_SERVER_SECREATE, getUrlParams().get('roomID') || 'defaultRoom', randomID(5), getUrlParams().get('username') || `User-${randomID(3)}`));
-    if (isMicOn) {
-      zp.turnMicrophoneOn(false);
-    } else {
-      zp.turnMicrophoneOn(true);
+    const zp = zpRef.current;
+    if (zp) {
+      if (isMicOn) {
+        zp.turnMicrophoneOn(false);
+        setIsMicOn(false);
+      } else {
+        zp.turnMicrophoneOn(true);
+        setIsMicOn(true);
+      }
     }
-    setIsMicOn(!isMicOn);
   };
 
   const toggleCamera = () => {
-    const zp = ZegoUIKitPrebuilt.create(ZegoUIKitPrebuilt.generateKitTokenForTest(parseInt(import.meta.env.VITE_ID), import.meta.env.VITE_SERVER_SECREATE, getUrlParams().get('roomID') || 'defaultRoom', randomID(5), getUrlParams().get('username') || `User-${randomID(3)}`));
-    if (isCameraOn) {
-      zp.turnCameraOn(false);
-    } else {
-      zp.turnCameraOn(true);
+    const zp = zpRef.current;
+    if (zp) {
+      if (isCameraOn) {
+        zp.turnCameraOn(false);
+        setIsCameraOn(false);
+      } else {
+        zp.turnCameraOn(true);
+        setIsCameraOn(true);
+      }
     }
-    setIsCameraOn(!isCameraOn);
   };
 
   return (
@@ -110,7 +123,7 @@ const VideoConference = () => {
         </div>
       </div>
       <div className="bg-slate-800 p-2 flex justify-center items-center space-x-2">
-        <button onClick={toggleCamera} className={`p-2 rounded-lg ${isCameraOn ? 'bg-blue-600' : 'bg-red-600'}`}>
+        <button onClick={toggleCamera} className={`p-2 rounded-full transition-colors ${isCameraOn ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'}`}>
           {isCameraOn ? (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
@@ -118,11 +131,11 @@ const VideoConference = () => {
             </svg>
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M10 12.586l4.293-4.293a1 1 0 111.414 1.414L11.414 14l4.293 4.293a1 1 0 01-1.414 1.414L10 15.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 14 4.293 9.707a1 1 0 011.414-1.414L10 12.586zM3.707 3.293a1 1 0 011.414 0L10 8.586l4.879-4.879a1 1 0 111.414 1.414L11.414 10l4.879 4.879a1 1 0 01-1.414 1.414L10 11.414l-4.879 4.879a1 1 0 01-1.414-1.414L8.586 10 3.707 5.121a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           )}
         </button>
-        <button onClick={toggleMic} className={`p-2 rounded-lg ${isMicOn ? 'bg-blue-600' : 'bg-red-600'}`}>
+        <button onClick={toggleMic} className={`p-2 rounded-full transition-colors ${isMicOn ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'}`}>
           {isMicOn ? (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
               <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z" />
@@ -134,12 +147,6 @@ const VideoConference = () => {
               <path fillRule="evenodd" d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4zm-1.466 5.966a.5.5 0 01.707 0L10 13.707l3.759-3.74a.5.5 0 01.707.707L10.707 14.414l3.76 3.74a.5.5 0 11-.707.707L10 15.121l-3.759 3.74a.5.5 0 11-.707-.707L9.293 14.414l-3.76-3.74a.5.5 0 010-.707z" clipRule="evenodd" />
             </svg>
           )}
-        </button>
-        <button className="p-2 rounded-lg bg-blue-600">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-          </svg>
         </button>
       </div>
     </div>
