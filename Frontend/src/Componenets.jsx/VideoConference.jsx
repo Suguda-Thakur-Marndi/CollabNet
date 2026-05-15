@@ -1,4 +1,5 @@
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
+import { useEffect, useRef } from 'react';
 
 function randomID(len) {
   let result = '';
@@ -19,39 +20,50 @@ export function getUrlParams(url = window.location.href) {
 }
 
 const VideoConference = () => {
-  const roomID = getUrlParams().get('roomID') || randomID(5);
+  const meetingEl = useRef(null);
+  const hasJoined = useRef(false);
 
-  let myMeeting = async (element) => {
-    // generate Kit Token
-    const appID = parseInt(import.meta.env.VITE_ID);
-    const serverSecret = import.meta.env.VITE_SERVER_SECREATE;
-    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, randomID(5), randomID(5));
+  useEffect(() => {
+    if (hasJoined.current || !meetingEl.current) return;
 
-    // Create instance object from Kit Token.
-    const zp = ZegoUIKitPrebuilt.create(kitToken);
-    // start the call
-    zp.joinRoom({
-      container: element,
-      sharedLinks: [
-        {
-          name: 'Personal link',
-          url:
-            window.location.protocol + '//' +
-            window.location.host + window.location.pathname +
-            '?roomID=' +
-            roomID,
+    const roomID = getUrlParams().get('roomID') || randomID(5);
+
+    const myMeeting = async (element) => {
+      hasJoined.current = true;
+      // generate Kit Token
+      const appID = parseInt(import.meta.env.VITE_ID);
+      const serverSecret = import.meta.env.VITE_SERVER_SECREATE;
+      const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, randomID(5), randomID(5));
+
+      // Create instance object from Kit Token.
+      const zp = ZegoUIKitPrebuilt.create(kitToken);
+      // start the call
+      zp.joinRoom({
+        container: element,
+        sharedLinks: [
+          {
+            name: 'Personal link',
+            url:
+              window.location.protocol + '//' +
+              window.location.host + window.location.pathname +
+              '?roomID=' +
+              roomID,
+          },
+        ],
+        scenario: {
+          mode: ZegoUIKitPrebuilt.VideoConference,
         },
-      ],
-      scenario: {
-        mode: ZegoUIKitPrebuilt.VideoConference,
-      },
-    });
-  };
+      });
+    };
+
+    myMeeting(meetingEl.current);
+
+  }, []);
 
   return (
     <div
       className="myCallContainer"
-      ref={myMeeting}
+      ref={meetingEl}
       style={{ width: '100%', height: '300px' }} // Adjusted height
     ></div>
   );
