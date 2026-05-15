@@ -1,60 +1,4 @@
-import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
-
-function randomID(len) {
-  let result = '';
-  if (result) return result;
-  var chars = '12345qwertyuiopasdfgh67890jklmnbvcxzMNBVCZXASDQWERTYHGFUIOLKJP',
-    maxPos = chars.length,
-    i;
-  len = len || 5;
-  for (i = 0; i < len; i++) {
-    result += chars.charAt(Math.floor(Math.random() * maxPos));
-  }
-  return result;
-}
-export function getUrlParams(
-  url = window.location.href
-) {
-  let urlStr = url.split('?')[1];
-  return new URLSearchParams(urlStr);
-}
- const roomID = getUrlParams().get('roomID') || randomID(5);
-  let myMeeting = async (element) => {
-
- // generate Kit Token
- const appID = parseInt(import.meta.env.VITE_ID);
- const serverSecret = import.meta.env.VITE_SERVER_SECREATE;
- const kitToken =  ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID,  randomID(5),  randomID(5));
-
- // Create instance object from Kit Token.
- const zp = ZegoUIKitPrebuilt.create(kitToken);
- // start the call
- zp.joinRoom({
-        container: element,
-        sharedLinks: [
-          {
-            name: 'Personal link',
-            url:
-             window.location.protocol + '//' + 
-             window.location.host + window.location.pathname +
-              '?roomID=' +
-              roomID,
-          },
-        ],
-        scenario: {
-         mode: ZegoUIKitPrebuilt.VideoConference,
-        },
-   });
-  };
-  return (
-    <div
-      className="myCallContainer"
-      ref={myMeeting}
-      style={{ width: '100vw', height: '100vh' }}
-    ></div>
-  );
-}
-
+import VideoConference from './VideoConference';
 
 const RightPanel = ({ users, width, onDividerMouseDown }) => {
   return (
@@ -84,9 +28,15 @@ const RightPanel = ({ users, width, onDividerMouseDown }) => {
             <li className='text-slate-400 text-sm p-3'>No other users online</li>
           )}
         </ul>
+        <div className='p-4 border-t border-slate-700'>
+          <h2 className='text-sm font-semibold text-white uppercase tracking-wide'>Video Call</h2>
+          <div className='mt-2'>
+            <VideoConference />
+          </div>
+        </div>
       </aside>
     </>
   )
 }
 
-export default RightPanel
+export default RightPanel;
