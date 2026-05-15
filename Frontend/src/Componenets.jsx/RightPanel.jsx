@@ -30,7 +30,7 @@ const RightPanel = ({ users, width, onDividerMouseDown }) => {
         </ul>
         <div className='p-4 border-t border-slate-700'>
           <h2 className='text-sm font-semibold text-white uppercase tracking-wide'>Video Call</h2>
-          <div className='mt-2'>
+          <div className='mt-2 h-48'>
             <VideoConference />
           </div>
         </div>
