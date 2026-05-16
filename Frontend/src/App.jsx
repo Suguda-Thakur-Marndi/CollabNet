@@ -3,11 +3,10 @@ import { useRef, useMemo, useEffect, useState } from 'react'
 import * as Y from "yjs"
 import { SocketIOProvider } from "y-socket.io"
 import { MonacoBinding } from "y-monaco"
-import LeftPanel from './Componenets.jsx/LeftPanel'
-import RightPanel from './Componenets.jsx/RightPanel'
-import TopBar from './Componenets.jsx/TopBar'
-import Output from './Componenets.jsx/Output'
-import Room from './Componenets.jsx/Room'
+import LeftPanel from './Components/LeftPanel'
+import RightPanel from './Components/RightPanel'
+import TopBar from './Components/TopBar'
+import Room from './Components/Room'
 
 const App = () => {
   const editorRef = useRef(null)
@@ -208,14 +207,11 @@ const App = () => {
               }}
             />
           </div>
-          <div className='h-48 border-t border-slate-700 bg-slate-900'>
-            <Output editerRef={editorRef} onRunCodeRef={runCodeRef}/>
-          </div>
+
         </section>
         
         <RightPanel 
           users={users}
-          currentUser={userName}
           width={100 - leftPanelWidth - editorWidth}
           onDividerMouseDown={handleRightDividerMouseDown}
         />

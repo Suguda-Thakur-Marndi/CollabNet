@@ -20,7 +20,7 @@ const Room = ({ onJoin, onCreate }) => {
   };
 
   return (
-    <main className='h-screen w-full bg-gradient-to-br from-purple-900 to-slate-950 flex items-center justify-center'>
+    <main className='h-screen w-full bg-linear-to-br from-purple-900 to-slate-950 flex items-center justify-center'>
       <div className='w-full max-w-md px-6 space-y-8'>
         
         <div className='bg-slate-900/50 p-6 rounded-lg'>
@@ -50,7 +50,7 @@ const Room = ({ onJoin, onCreate }) => {
           </div>
         </div>
 
-        {/* Join Room Section */}
+       
         <div className='bg-slate-900/50 p-6 rounded-lg'>
           <h2 className='text-2xl font-bold text-white mb-4'>Join a Room</h2>
           <div className='space-y-4'>
