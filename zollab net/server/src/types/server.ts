@@ -4,8 +4,12 @@ import http from "http"
 import cors from "cors"
 import { SocketEvent, SocketId } from "./types/socket"
 import { USER_CONNECTION_STATUS, User } from "./types/user"
-import { Server } from "socket.io"
+import { Server, Socket } from "socket.io"
 import path from "path"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 dotenv.config()
 
@@ -55,9 +59,9 @@ function getUserBySocketId(socketId: SocketId): User | null {
 	return user
 }
 
-io.on("connection", (socket) => {
+io.on("connection", (socket: Socket) => {
 	// Handle user actions
-	socket.on(SocketEvent.JOIN_REQUEST, ({ roomId, username }) => {
+	socket.on(SocketEvent.JOIN_REQUEST, ({ roomId, username }: { roomId: string; username: string }) => {
 		// Check is username exist in the room
 		const isUsernameExist = getUsersInRoom(roomId).filter(
 			(u) => u.username === username
@@ -97,7 +101,7 @@ io.on("connection", (socket) => {
 	// Handle file actions
 	socket.on(
 		SocketEvent.SYNC_FILE_STRUCTURE,
-		({ fileStructure, openFiles, activeFile, socketId }) => {
+		({ fileStructure, openFiles, activeFile, socketId }: { fileStructure: any; openFiles: any; activeFile: any; socketId: string }) => {
 			io.to(socketId).emit(SocketEvent.SYNC_FILE_STRUCTURE, {
 				fileStructure,
 				openFiles,
@@ -108,7 +112,7 @@ io.on("connection", (socket) => {
 
 	socket.on(
 		SocketEvent.DIRECTORY_CREATED,
-		({ parentDirId, newDirectory }) => {
+		({ parentDirId, newDirectory }: { parentDirId: string; newDirectory: any }) => {
 			const roomId = getRoomId(socket.id)
 			if (!roomId) return
 			socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_CREATED, {
@@ -118,7 +122,7 @@ io.on("connection", (socket) => {
 		}
 	)
 
-	socket.on(SocketEvent.DIRECTORY_UPDATED, ({ dirId, children }) => {
+	socket.on(SocketEvent.DIRECTORY_UPDATED, ({ dirId, children }: { dirId: string; children: any }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_UPDATED, {
@@ -127,7 +131,7 @@ io.on("connection", (socket) => {
 		})
 	})
 
-	socket.on(SocketEvent.DIRECTORY_RENAMED, ({ dirId, newName }) => {
+	socket.on(SocketEvent.DIRECTORY_RENAMED, ({ dirId, newName }: { dirId: string; newName: string }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_RENAMED, {
@@ -136,7 +140,7 @@ io.on("connection", (socket) => {
 		})
 	})
 
-	socket.on(SocketEvent.DIRECTORY_DELETED, ({ dirId }) => {
+	socket.on(SocketEvent.DIRECTORY_DELETED, ({ dirId }: { dirId: string }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast
@@ -144,7 +148,7 @@ io.on("connection", (socket) => {
 			.emit(SocketEvent.DIRECTORY_DELETED, { dirId })
 	})
 
-	socket.on(SocketEvent.FILE_CREATED, ({ parentDirId, newFile }) => {
+	socket.on(SocketEvent.FILE_CREATED, ({ parentDirId, newFile }: { parentDirId: string; newFile: any }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast
@@ -152,7 +156,7 @@ io.on("connection", (socket) => {
 			.emit(SocketEvent.FILE_CREATED, { parentDirId, newFile })
 	})
 
-	socket.on(SocketEvent.FILE_UPDATED, ({ fileId, newContent }) => {
+	socket.on(SocketEvent.FILE_UPDATED, ({ fileId, newContent }: { fileId: string; newContent: string }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast.to(roomId).emit(SocketEvent.FILE_UPDATED, {
@@ -161,7 +165,7 @@ io.on("connection", (socket) => {
 		})
 	})
 
-	socket.on(SocketEvent.FILE_RENAMED, ({ fileId, newName }) => {
+	socket.on(SocketEvent.FILE_RENAMED, ({ fileId, newName }: { fileId: string; newName: string }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast.to(roomId).emit(SocketEvent.FILE_RENAMED, {
@@ -170,14 +174,14 @@ io.on("connection", (socket) => {
 		})
 	})
 
-	socket.on(SocketEvent.FILE_DELETED, ({ fileId }) => {
+	socket.on(SocketEvent.FILE_DELETED, ({ fileId }: { fileId: string }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast.to(roomId).emit(SocketEvent.FILE_DELETED, { fileId })
 	})
 
 	// Handle user status
-	socket.on(SocketEvent.USER_OFFLINE, ({ socketId }) => {
+	socket.on(SocketEvent.USER_OFFLINE, ({ socketId }: { socketId: string }) => {
 		userSocketMap = userSocketMap.map((user) => {
 			if (user.socketId === socketId) {
 				return { ...user, status: USER_CONNECTION_STATUS.OFFLINE }
@@ -189,7 +193,7 @@ io.on("connection", (socket) => {
 		socket.broadcast.to(roomId).emit(SocketEvent.USER_OFFLINE, { socketId })
 	})
 
-	socket.on(SocketEvent.USER_ONLINE, ({ socketId }) => {
+	socket.on(SocketEvent.USER_ONLINE, ({ socketId }: { socketId: string }) => {
 		userSocketMap = userSocketMap.map((user) => {
 			if (user.socketId === socketId) {
 				return { ...user, status: USER_CONNECTION_STATUS.ONLINE }
@@ -202,7 +206,7 @@ io.on("connection", (socket) => {
 	})
 
 	// Handle chat actions
-	socket.on(SocketEvent.SEND_MESSAGE, ({ message }) => {
+	socket.on(SocketEvent.SEND_MESSAGE, ({ message }: { message: any }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast
@@ -211,7 +215,7 @@ io.on("connection", (socket) => {
 	})
 
 	// Handle cursor position and selection
-	socket.on(SocketEvent.TYPING_START, ({ cursorPosition, selectionStart, selectionEnd }) => {
+	socket.on(SocketEvent.TYPING_START, ({ cursorPosition, selectionStart, selectionEnd }: { cursorPosition: number; selectionStart: number; selectionEnd: number }) => {
 		userSocketMap = userSocketMap.map((user) => {
 			if (user.socketId === socket.id) {
 				return {
@@ -244,7 +248,7 @@ io.on("connection", (socket) => {
 	})
 
 	// Handle cursor movement without typing
-	socket.on(SocketEvent.CURSOR_MOVE, ({ cursorPosition, selectionStart, selectionEnd }) => {
+	socket.on(SocketEvent.CURSOR_MOVE, ({ cursorPosition, selectionStart, selectionEnd }: { cursorPosition: number; selectionStart: number; selectionEnd: number }) => {
 		userSocketMap = userSocketMap.map((user) => {
 			if (user.socketId === socket.id) {
 				return {
@@ -270,13 +274,13 @@ io.on("connection", (socket) => {
 			.emit(SocketEvent.REQUEST_DRAWING, { socketId: socket.id })
 	})
 
-	socket.on(SocketEvent.SYNC_DRAWING, ({ drawingData, socketId }) => {
+	socket.on(SocketEvent.SYNC_DRAWING, ({ drawingData, socketId }: { drawingData: any; socketId: string }) => {
 		socket.broadcast
 			.to(socketId)
 			.emit(SocketEvent.SYNC_DRAWING, { drawingData })
 	})
 
-	socket.on(SocketEvent.DRAWING_UPDATE, ({ snapshot }) => {
+	socket.on(SocketEvent.DRAWING_UPDATE, ({ snapshot }: { snapshot: any }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.broadcast.to(roomId).emit(SocketEvent.DRAWING_UPDATE, {
@@ -287,7 +291,7 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3000
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
 	// Send the index.html file
 	res.sendFile(path.join(__dirname, "..", "public", "index.html"))
 })

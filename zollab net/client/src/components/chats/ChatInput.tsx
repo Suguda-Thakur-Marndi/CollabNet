@@ -4,7 +4,7 @@ import { useSocket } from "@/context/SocketContext"
 import { ChatMessage } from "@/types/chat"
 import { SocketEvent } from "@/types/socket"
 import { formatDate } from "@/utils/formateDate"
-import { FormEvent, useRef } from "react"
+import { FormEvent, type ReactNode, useRef } from "react"
 import { LuSendHorizonal } from "react-icons/lu"
 import { v4 as uuidV4 } from "uuid"
 
