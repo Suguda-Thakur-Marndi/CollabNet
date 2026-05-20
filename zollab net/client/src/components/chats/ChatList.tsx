@@ -1,5 +1,6 @@
 import { useAppContext } from "@/context/AppContext"
 import { useChatRoom } from "@/context/ChatContext"
+import type { ChatMessage } from "@/types/chat"
 import { type SyntheticEvent, useEffect, useRef } from "react"
 
 function ChatList() {
@@ -39,7 +40,7 @@ function ChatList() {
             onScroll={handleScroll}
         >
             {/* Chat messages */}
-            {messages.map((message, index) => {
+            {messages.map((message: ChatMessage, index: number) => {
                 return (
                     <div
                         key={index}

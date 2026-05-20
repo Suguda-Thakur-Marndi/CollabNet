@@ -1,10 +1,11 @@
 import { useAppContext } from "@/context/AppContext"
 import { useChatRoom } from "@/context/ChatContext"
 import { useSocket } from "@/context/SocketContext"
-import { ChatMessage } from "@/types/chat"
+import type { ChatMessage } from "@/types/chat"
 import { SocketEvent } from "@/types/socket"
 import { formatDate } from "@/utils/formateDate"
-import { FormEvent, type ReactNode, useRef } from "react"
+import type { FormEvent } from "react"
+import { useRef } from "react"
 import { LuSendHorizonal } from "react-icons/lu"
 import { v4 as uuidV4 } from "uuid"
 
@@ -27,7 +28,7 @@ function ChatInput() {
                 timestamp: formatDate(new Date().toISOString()),
             }
             socket.emit(SocketEvent.SEND_MESSAGE, { message })
-            setMessages((messages) => [...messages, message])
+            setMessages((messages: ChatMessage[]) => [...messages, message])
 
             if (inputRef.current) inputRef.current.value = ""
         }
