@@ -34,7 +34,7 @@ function ChatList() {
 
     return (
         <div
-            className="flex-grow overflow-auto rounded-md bg-darkHover p-2"
+            className="grow overflow-auto rounded-md bg-darkHover p-2"
             ref={messagesContainerRef}
             onScroll={handleScroll}
         >
@@ -44,7 +44,7 @@ function ChatList() {
                     <div
                         key={index}
                         className={
-                            "mb-2 w-[80%] self-end break-words rounded-md bg-dark px-3 py-2" +
+                            "mb-2 w-[80%] self-end break-word rounded-md bg-dark px-3 py-2" +
                             (message.username === currentUser.username
                                 ? " ml-auto "
                                 : "")
