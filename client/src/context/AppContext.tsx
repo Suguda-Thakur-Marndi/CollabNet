@@ -26,11 +26,14 @@ function AppContextProvider({ children }: { children: ReactNode }) {
         roomId: "",
     })
 
-    const setCurrentUser = (
-        user: User | ((prev: User) => User),
-    ) => {
-        setCurrentUserState(user)
-    }
+    const setCurrentUser = useCallback(
+        (
+            user: User | ((prev: User) => User),
+        ) => {
+            setCurrentUserState(user)
+        },
+        [],
+    )
     const [activityState, setActivityState] = useState<ACTIVITY_STATE>(
         ACTIVITY_STATE.CODING,
     )

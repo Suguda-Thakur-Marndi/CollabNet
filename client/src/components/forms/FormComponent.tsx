@@ -83,7 +83,7 @@ const FormComponent = () => {
                 toast.success("Room ID filled in — enter your username")
             }
         }
-    }, [currentUser.roomId, currentUser.username.length, location.state?.roomId, setCurrentUser])
+    }, [currentUser.username, location.state?.roomId, setCurrentUser])
 
     useEffect(() => {
         if (status === USER_STATUS.DISCONNECTED && !socket.connected) {
@@ -91,21 +91,24 @@ const FormComponent = () => {
             return
         }
 
-        const isRedirect = sessionStorage.getItem("redirect") || false
+        const isRedirect = sessionStorage.getItem("redirect") === "true"
 
         if (status === USER_STATUS.JOINED && !isRedirect) {
             const username = currentUser.username
-            sessionStorage.setItem("redirect", "true")
-            navigate(`/editor/${currentUser.roomId}`, {
-                state: { username },
-            })
+            const roomId = currentUser.roomId
+            if (username && roomId) {
+                sessionStorage.setItem("redirect", "true")
+                navigate(`/editor/${roomId}`, {
+                    state: { username },
+                })
+            }
         } else if (status === USER_STATUS.JOINED && isRedirect) {
             sessionStorage.removeItem("redirect")
             setStatus(USER_STATUS.DISCONNECTED)
             socket.disconnect()
             socket.connect()
         }
-    }, [currentUser, navigate, setStatus, socket, status])
+    }, [currentUser.username, currentUser.roomId, navigate, setStatus, socket, status])
 
     return (
         <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-2xl border border-border bg-surface/80 p-6 shadow-xl backdrop-blur-sm sm:p-8">

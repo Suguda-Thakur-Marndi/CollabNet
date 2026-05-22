@@ -26,7 +26,7 @@ function Editor() {
     const { theme, language, fontSize } = useSettings()
     const { socket } = useSocket()
     const { viewHeight } = useResponsive()
-    const [timeOut, setTimeOut] = useState(setTimeout(() => {}, 0))
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const filteredUsers = useMemo(
         () => users.filter((u) => u.username !== currentUser.username),
         [users, currentUser],
@@ -58,13 +58,15 @@ function Editor() {
             fileId: activeFile.id,
             newContent: code,
         })
-        clearTimeout(timeOut)
+        
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current)
+        }
 
-        const newTimeOut = setTimeout(
+        typingTimeoutRef.current = setTimeout(
             () => socket.emit(SocketEvent.TYPING_PAUSE),
             1000,
         )
-        setTimeOut(newTimeOut)
     }
 
     const handleSelectionChange = useCallback((view: ViewUpdate) => {
@@ -97,6 +99,17 @@ function Editor() {
     }, [lastCursorPosition, lastSelection, socket])
 
     usePageEvents()
+
+    useEffect(() => {
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current)
+            }
+            if (cursorMoveTimeoutRef.current) {
+                clearTimeout(cursorMoveTimeoutRef.current)
+            }
+        }
+    }, [])
 
     useEffect(() => {
         const extensions = [

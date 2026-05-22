@@ -17,7 +17,7 @@ function useResponsive() {
             setMinHeightReached(false)
             setViewHeight(height)
         }
-    }, [height, isMobile, viewHeight])
+    }, [height, isMobile])
 
     return { viewHeight, minHeightReached }
 }

@@ -101,6 +101,10 @@ const SocketProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         setSocket(socket)
+        
+        return () => {
+            // Cleanup socket on unmount
+        }
     }, [socket])
 
     useEffect(() => {
