@@ -4,7 +4,7 @@
 services:
   piston:
     image: ghcr.io/engineer-man/piston:latest
-    container_name: zollab-piston
+    container_name: collab-piston
     privileged: true
     ports:
       - "2000:2000"

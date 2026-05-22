@@ -35,7 +35,7 @@ let userSocketMap: User[] = []
 const streamReadySockets = new Set<SocketId>()
 
 function getUsersInRoom(roomId: string): User[] {
-	return userSocketMap.filter((user) => user.roomId == roomId)
+	return userSocketMap.filter((user) => user.roomId === roomId)
 }
 
 function getRoomId(socketId: SocketId): string | null {
@@ -56,6 +56,12 @@ function getUserBySocketId(socketId: SocketId): User | null {
 io.on("connection", (socket: Socket) => {
 
 	socket.on(SocketEvent.JOIN_REQUEST, ({ roomId, username }: { roomId: string; username: string }) => {
+		// Validate input
+		if (!roomId || typeof roomId !== 'string' || !username || typeof username !== 'string') {
+			socket.emit(SocketEvent.USERNAME_EXISTS)
+			return
+		}
+
 		const existingUser = userSocketMap.find(
 			(u) => u.roomId === roomId && u.username === username
 		)
@@ -362,10 +368,17 @@ io.on("connection", (socket: Socket) => {
 const PORT = process.env.PORT || 3000
 
 app.get("/", (_req: Request, res: Response) => {
-
 	res.sendFile(path.join(__dirname, "..", "public", "index.html"))
 })
 
 server.listen(PORT, () => {
 	console.log(`Listening on port ${PORT}`)
+})
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+	console.log('SIGTERM signal received: closing HTTP server')
+	server.close(() => {
+		console.log('HTTP server closed')
+	})
 })

@@ -1,5 +1,5 @@
 /**
- * Socket.io integration smoke test for zollab net collaboration.
+ * Socket.io integration smoke test for Collab Net collaboration.
  * Run: node scripts/test-collaboration.mjs
  */
 import { io } from "../client/node_modules/socket.io-client/build/esm/index.js"

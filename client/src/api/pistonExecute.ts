@@ -45,7 +45,7 @@ export async function executePistonCode(payload: ExecutePayload) {
                 return await localFallback.post("/execute", payload)
             } catch {
                 throw new Error(
-                    "Public code runner cannot execute programs anymore. Start a local runner: run `docker compose up -d` in the zollab net folder, then refresh this page.",
+                    "Public code runner cannot execute programs anymore. Start a local runner: run `docker compose up -d` in the Collab Net folder, then refresh this page.",
                 )
             }
         }

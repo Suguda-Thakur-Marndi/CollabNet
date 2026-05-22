@@ -605,9 +605,14 @@ function FileContextProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        zip.generateAsync({ type: "blob" }).then((content: Blob) => {
-            saveAs(content, "download.zip")
-        })
+        zip.generateAsync({ type: "blob" })
+            .then((content: Blob) => {
+                saveAs(content, "download.zip")
+            })
+            .catch((error) => {
+                console.error("Error generating zip file:", error)
+                toast.error("Failed to download files")
+            })
     }
 
     const handleUserJoined = useCallback(

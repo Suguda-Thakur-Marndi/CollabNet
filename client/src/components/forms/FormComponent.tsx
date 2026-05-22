@@ -7,7 +7,7 @@ import { toast } from "react-hot-toast"
 import { LuCopy, LuSparkles } from "react-icons/lu"
 import { useLocation, useNavigate } from "react-router-dom"
 import { v4 as uuidv4 } from "uuid"
-import logo from "@/assets/logo.svg"
+import logo from "@/assets/logo.png"
 
 const FormComponent = () => {
     const location = useLocation()
@@ -113,7 +113,7 @@ const FormComponent = () => {
     return (
         <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-2xl border border-border bg-surface/80 p-6 shadow-xl backdrop-blur-sm sm:p-8">
             <div className="text-center">
-                <img src={logo} alt="Zollab Net" className="mx-auto w-full max-w-[280px]" />
+                <img src={logo} alt="Collab Net" className="mx-auto w-full max-w-[280px]" />
                 <p className="mt-3 text-sm text-muted">
                     Real-time collaborative coding — join a room and build together.
                 </p>

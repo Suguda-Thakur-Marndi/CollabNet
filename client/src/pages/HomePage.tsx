@@ -1,4 +1,4 @@
-import illustration from "@/assets/illustration.svg"
+import illustration from "@/assets/illustration.png"
 import FormComponent from "@/components/forms/FormComponent"
 
 function HomePage() {
