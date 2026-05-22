@@ -32,6 +32,7 @@ const io = new Server(server, {
 })
 
 let userSocketMap: User[] = []
+const streamReadySockets = new Set<SocketId>()
 
 // Function to get all users in a room
 function getUsersInRoom(roomId: string): User[] {
@@ -45,19 +46,13 @@ function getRoomId(socketId: SocketId): string | null {
 	)?.roomId
 
 	if (!roomId) {
-		console.error("Room ID is undefined for socket ID:", socketId)
 		return null
 	}
 	return roomId
 }
 
 function getUserBySocketId(socketId: SocketId): User | null {
-	const user = userSocketMap.find((user) => user.socketId === socketId)
-	if (!user) {
-		console.error("User not found for socket ID:", socketId)
-		return null
-	}
-	return user
+	return userSocketMap.find((user) => user.socketId === socketId) ?? null
 }
 
 io.on("connection", (socket: Socket) => {
@@ -102,6 +97,7 @@ io.on("connection", (socket: Socket) => {
 	})
 
 	socket.on("disconnecting", () => {
+		streamReadySockets.delete(socket.id)
 		const user = getUserBySocketId(socket.id)
 		if (!user) return
 		const roomId = user.roomId
@@ -194,29 +190,37 @@ io.on("connection", (socket: Socket) => {
 		socket.broadcast.to(roomId).emit(SocketEvent.FILE_DELETED, { fileId })
 	})
 
-	// Handle user status
+	// Handle user status (only for sockets that have joined a room)
 	socket.on(SocketEvent.USER_OFFLINE, ({ socketId }: { socketId: string }) => {
-		userSocketMap = userSocketMap.map((user) => {
-			if (user.socketId === socketId) {
-				return { ...user, status: USER_CONNECTION_STATUS.OFFLINE }
+		const targetId = socketId || socket.id
+		const user = getUserBySocketId(targetId)
+		if (!user) return
+
+		userSocketMap = userSocketMap.map((u) => {
+			if (u.socketId === targetId) {
+				return { ...u, status: USER_CONNECTION_STATUS.OFFLINE }
 			}
-			return user
+			return u
 		})
-		const roomId = getRoomId(socketId)
-		if (!roomId) return
-		socket.broadcast.to(roomId).emit(SocketEvent.USER_OFFLINE, { socketId })
+		socket.broadcast.to(user.roomId).emit(SocketEvent.USER_OFFLINE, {
+			socketId: targetId,
+		})
 	})
 
 	socket.on(SocketEvent.USER_ONLINE, ({ socketId }: { socketId: string }) => {
-		userSocketMap = userSocketMap.map((user) => {
-			if (user.socketId === socketId) {
-				return { ...user, status: USER_CONNECTION_STATUS.ONLINE }
+		const targetId = socketId || socket.id
+		const user = getUserBySocketId(targetId)
+		if (!user) return
+
+		userSocketMap = userSocketMap.map((u) => {
+			if (u.socketId === targetId) {
+				return { ...u, status: USER_CONNECTION_STATUS.ONLINE }
 			}
-			return user
+			return u
 		})
-		const roomId = getRoomId(socketId)
-		if (!roomId) return
-		socket.broadcast.to(roomId).emit(SocketEvent.USER_ONLINE, { socketId })
+		socket.broadcast.to(user.roomId).emit(SocketEvent.USER_ONLINE, {
+			socketId: targetId,
+		})
 	})
 
 	// Handle chat actions
@@ -300,6 +304,68 @@ io.on("connection", (socket: Socket) => {
 		socket.broadcast.to(roomId).emit(SocketEvent.DRAWING_UPDATE, {
 			snapshot,
 		})
+	})
+
+	// WebRTC video/voice call signaling
+	socket.on(SocketEvent.STREAM_READY, () => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+
+		streamReadySockets.add(socket.id)
+
+		// Notify others in the room that this socket is ready for WebRTC
+		socket.to(roomId).emit(SocketEvent.USER_READY, socket.id)
+
+		// Notify this client about peers already in the call
+		for (const peer of getUsersInRoom(roomId)) {
+			if (
+				peer.socketId !== socket.id &&
+				streamReadySockets.has(peer.socketId)
+			) {
+				io.to(socket.id).emit(SocketEvent.USER_READY, peer.socketId)
+			}
+		}
+	})
+
+	socket.on(
+		SocketEvent.WEBRTC_SIGNAL,
+		({
+			signal,
+			targetUserID,
+		}: {
+			signal: unknown
+			targetUserID: string
+		}) => {
+			io.to(targetUserID).emit(SocketEvent.WEBRTC_SIGNAL, {
+				userID: socket.id,
+				signal,
+			})
+		}
+	)
+
+	socket.on(SocketEvent.MIC_STATE, (micOn: boolean) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		socket.to(roomId).emit(SocketEvent.MIC_STATE, {
+			userID: socket.id,
+			micOn,
+		})
+	})
+
+	socket.on(SocketEvent.SPEAKER_STATE, (speakersOn: boolean) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		socket.to(roomId).emit(SocketEvent.SPEAKER_STATE, {
+			userID: socket.id,
+			speakersOn,
+		})
+	})
+
+	socket.on(SocketEvent.CAMERA_OFF, () => {
+		streamReadySockets.delete(socket.id)
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		socket.to(roomId).emit(SocketEvent.CAMERA_OFF, socket.id)
 	})
 })
 

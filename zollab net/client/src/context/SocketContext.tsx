@@ -15,6 +15,7 @@ import {
 } from "react"
 import { toast } from "react-hot-toast"
 import { Socket, io } from "socket.io-client"
+import { setSocket } from "@/lib/socket"
 import { useAppContext } from "./AppContext"
 
 const SocketContext = createContext<SocketContextType | null>(null)
@@ -97,6 +98,10 @@ const SocketProvider = ({ children }: { children: ReactNode }) => {
         },
         [setDrawingData],
     )
+
+    useEffect(() => {
+        setSocket(socket)
+    }, [socket])
 
     useEffect(() => {
         socket.on("connect_error", handleError)

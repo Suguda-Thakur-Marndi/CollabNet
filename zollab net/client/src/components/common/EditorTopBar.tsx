@@ -1,12 +1,24 @@
 import { useAppContext } from "@/context/AppContext"
 import { useSocket } from "@/context/SocketContext"
+import { useViews } from "@/context/ViewContext"
+import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { USER_STATUS } from "@/types/user"
 import toast from "react-hot-toast"
-import { LuCopy, LuUsers } from "react-icons/lu"
+import { LuCopy, LuUsers, LuVideo } from "react-icons/lu"
 
 function EditorTopBar() {
-    const { currentUser, users, status } = useAppContext()
+    const { currentUser, users, status, callPanelOpen, toggleCallPanel } =
+        useAppContext()
+    const { setIsSidebarOpen } = useViews()
+    const { isMobile } = useWindowDimensions()
     const { socket } = useSocket()
+
+    const handleCallToggle = () => {
+        if (isMobile && !callPanelOpen) {
+            setIsSidebarOpen(false)
+        }
+        toggleCallPanel()
+    }
 
     const copyRoomLink = async () => {
         try {
@@ -42,12 +54,29 @@ function EditorTopBar() {
                 </button>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted">
+                <button
+                    type="button"
+                    onClick={handleCallToggle}
+                    className={`btn-ghost flex shrink-0 items-center gap-1.5 p-1.5 ${
+                        callPanelOpen ? "text-primary" : ""
+                    }`}
+                    title={
+                        callPanelOpen
+                            ? "Hide video & voice"
+                            : "Open video & voice"
+                    }
+                    aria-label="Toggle video and voice call"
+                    aria-pressed={callPanelOpen}
+                >
+                    <LuVideo size={18} />
+                    <span className="hidden sm:inline">Call</span>
+                </button>
                 <LuUsers size={16} className="shrink-0" />
                 <span>
                     {users.length} {users.length === 1 ? "user" : "users"}
                 </span>
-                <span className="hidden text-slate-500 sm:inline">·</span>
-                <span className="hidden truncate sm:inline">
+                <span className="hidden text-slate-500 md:inline">·</span>
+                <span className="hidden max-w-[120px] truncate md:inline">
                     {currentUser.username}
                 </span>
             </div>

@@ -21,6 +21,9 @@ interface AppContext {
     setActivityState: (state: ACTIVITY_STATE) => void
     drawingData: DrawingData
     setDrawingData: (data: DrawingData) => void
+    callPanelOpen: boolean
+    setCallPanelOpen: (open: boolean) => void
+    toggleCallPanel: () => void
 }
 
 export { ACTIVITY_STATE }

@@ -8,7 +8,7 @@ function WorkSpace() {
     const { activityState } = useAppContext()
 
     return (
-        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-dark">
+        <div className="workspace flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-dark">
             <EditorTopBar />
             <div className="min-h-0 flex-1 overflow-hidden">
                 {activityState === ACTIVITY_STATE.CODING ? (

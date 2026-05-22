@@ -9,6 +9,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      events: 'events',
+      buffer: 'buffer',
+      process: 'process/browser',
     },
+  },
+  define: {
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: ['simple-peer', 'buffer', 'process'],
   },
 })

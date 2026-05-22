@@ -27,6 +27,12 @@ enum SocketEvent {
 	REQUEST_DRAWING = "request-drawing",
 	SYNC_DRAWING = "sync-drawing",
 	DRAWING_UPDATE = "drawing-update",
+	STREAM_READY = "stream-ready",
+	USER_READY = "user-ready",
+	WEBRTC_SIGNAL = "webrtc-signal",
+	MIC_STATE = "mic-state",
+	SPEAKER_STATE = "speaker-state",
+	CAMERA_OFF = "camera-off",
 }
 
 interface SocketContext {

@@ -1,3 +1,4 @@
+import CallPanelButton from "@/components/sidebar/CallPanelButton"
 import SidebarButton from "@/components/sidebar/sidebar-views/SidebarButton"
 import { useAppContext } from "@/context/AppContext"
 import { useSocket } from "@/context/SocketContext"
@@ -76,6 +77,7 @@ function Sidebar() {
                     viewName={VIEWS.SETTINGS}
                     icon={viewIcons[VIEWS.SETTINGS]}
                 />
+                <CallPanelButton />
 
                 {/* Button to change activity state coding or drawing */}
                 <div className="flex h-fit items-center justify-center">

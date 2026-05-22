@@ -4,7 +4,7 @@ import {
     DrawingData,
 } from "@/types/app"
 import { RemoteUser, USER_STATUS, User } from "@/types/user"
-import { ReactNode, createContext, useContext, useState } from "react"
+import { ReactNode, createContext, useCallback, useContext, useState } from "react"
 
 const AppContext = createContext<AppContextType | null>(null)
 
@@ -35,6 +35,11 @@ function AppContextProvider({ children }: { children: ReactNode }) {
         ACTIVITY_STATE.CODING,
     )
     const [drawingData, setDrawingData] = useState<DrawingData>(null)
+    const [callPanelOpen, setCallPanelOpen] = useState(false)
+
+    const toggleCallPanel = useCallback(() => {
+        setCallPanelOpen((open) => !open)
+    }, [])
 
     return (
         <AppContext.Provider
@@ -49,6 +54,9 @@ function AppContextProvider({ children }: { children: ReactNode }) {
                 setActivityState,
                 drawingData,
                 setDrawingData,
+                callPanelOpen,
+                setCallPanelOpen,
+                toggleCallPanel,
             }}
         >
             {children}

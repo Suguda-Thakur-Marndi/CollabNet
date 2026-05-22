@@ -1,4 +1,5 @@
 import SplitterComponent from "@/components/SplitterComponent"
+import CallPanel from "@/components/call/CallPanel"
 import ConnectionStatusPage from "@/components/connection/ConnectionStatusPage"
 import Sidebar from "@/components/sidebar/Sidebar"
 import WorkSpace from "@/components/workspace"
@@ -12,13 +13,12 @@ import { useEffect } from "react"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
 
 function EditorPage() {
-    // Listen user online/offline status
     useUserActivity()
-    // Enable fullscreen mode
     useFullScreen()
     const navigate = useNavigate()
     const { roomId } = useParams()
-    const { status, setCurrentUser, currentUser } = useAppContext()
+    const { status, setCurrentUser, currentUser, callPanelOpen } =
+        useAppContext()
     const { socket } = useSocket()
     const location = useLocation()
 
@@ -81,7 +81,13 @@ function EditorPage() {
     return (
         <SplitterComponent>
             <Sidebar />
-            <WorkSpace/>
+            <div
+                className="editor-layout flex min-h-0 min-w-0 flex-1 flex-col md:flex-row"
+                data-call-open={callPanelOpen ? "true" : "false"}
+            >
+                <WorkSpace />
+                <CallPanel />
+            </div>
         </SplitterComponent>
     )
 }
