@@ -61,14 +61,27 @@ function getUserBySocketId(socketId: SocketId): User | null {
 }
 
 io.on("connection", (socket: Socket) => {
-	// Handle user actions
+	
 	socket.on(SocketEvent.JOIN_REQUEST, ({ roomId, username }: { roomId: string; username: string }) => {
-		// Check is username exist in the room
-		const isUsernameExist = getUsersInRoom(roomId).filter(
-			(u) => u.username === username
+		const existingUser = userSocketMap.find(
+			(u) => u.roomId === roomId && u.username === username
 		)
-		if (isUsernameExist.length > 0) {
-			io.to(socket.id).emit(SocketEvent.USERNAME_EXISTS)
+
+		if (existingUser) {
+			// Same user reconnecting (refresh/tab restore) — replace stale socket
+			userSocketMap = userSocketMap.filter(
+				(u) => u.socketId !== existingUser.socketId
+			)
+			const user = {
+				...existingUser,
+				status: USER_CONNECTION_STATUS.ONLINE,
+				socketId: socket.id,
+			}
+			userSocketMap.push(user)
+			socket.join(roomId)
+			socket.broadcast.to(roomId).emit(SocketEvent.USER_JOINED, { user })
+			const users = getUsersInRoom(roomId)
+			io.to(socket.id).emit(SocketEvent.JOIN_ACCEPTED, { user, users })
 			return
 		}
 

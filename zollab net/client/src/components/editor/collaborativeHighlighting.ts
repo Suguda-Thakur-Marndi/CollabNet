@@ -121,24 +121,37 @@ export const remoteUsersField = StateField.define<DecorationSet>({
                 const newDecorations: any[] = []
 
                 for (const user of users) {
-                    // Only show decorations for users in the same file and who are typing or have selections
-                    if (!user.typing && !user.selectionStart && !user.selectionEnd) {
+                    const hasSelection =
+                        user.selectionStart !== undefined &&
+                        user.selectionEnd !== undefined &&
+                        user.selectionStart !== user.selectionEnd
+                    const hasCursor =
+                        user.cursorPosition !== undefined &&
+                        user.cursorPosition >= 0
+
+                    if (!user.typing && !hasSelection && !hasCursor) {
                         continue
                     }
 
-                    // Add selection decoration first (if exists) since it might start before cursor
-                    if (user.selectionStart !== undefined && user.selectionEnd !== undefined &&
-                        user.selectionStart !== user.selectionEnd) {
-                        const from = Math.min(user.selectionStart, tr.newDoc.length)
-                        const to = Math.min(user.selectionEnd, tr.newDoc.length)
+                    if (hasSelection) {
+                        const from = Math.min(
+                            user.selectionStart as number,
+                            tr.newDoc.length,
+                        )
+                        const to = Math.min(
+                            user.selectionEnd as number,
+                            tr.newDoc.length,
+                        )
                         if (from < to) {
                             newDecorations.push(createSelectionDecoration(user, from, to))
                         }
                     }
 
-                    // Add cursor decoration
-                    if (user.cursorPosition >= 0) {
-                        const cursorPos = Math.min(user.cursorPosition, tr.newDoc.length)
+                    if (hasCursor) {
+                        const cursorPos = Math.min(
+                            user.cursorPosition,
+                            tr.newDoc.length,
+                        )
                         newDecorations.push(createCursorDecoration(user, cursorPos))
                     }
                 }

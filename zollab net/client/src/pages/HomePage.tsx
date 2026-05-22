@@ -1,23 +1,33 @@
 import illustration from "@/assets/illustration.svg"
 import FormComponent from "@/components/forms/FormComponent"
-// import Footer from "@/components/common/Footer";
 
 function HomePage() {
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-16">
-            <div className="my-12 flex h-full min-w-full flex-col items-center justify-evenly sm:flex-row sm:pt-0">
-                <div className="flex w-full animate-up-down justify-center sm:w-1/2 sm:pl-4">
+        <div className="home-gradient flex min-h-screen flex-col items-center justify-center px-4 py-12">
+            <div className="flex w-full max-w-6xl flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
+                <div className="flex w-full max-w-md flex-col items-center lg:max-w-lg lg:items-start">
                     <img
                         src={illustration}
-                        alt="Code Sync Illustration"
-                        className="mx-auto w-[250px] sm:w-[400px]"
+                        alt="Collaborative coding"
+                        className="animate-up-down w-full max-w-[320px] sm:max-w-[400px]"
                     />
+                    <ul className="mt-8 hidden space-y-2 text-sm text-muted lg:block">
+                        <li className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                            Edit code together in real time
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                            Shared files, chat, and whiteboard
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                            Run code in 80+ languages
+                        </li>
+                    </ul>
                 </div>
-                <div className="flex w-full items-center justify-center sm:w-1/2">
-                    <FormComponent />
-                </div>
+                <FormComponent />
             </div>
-            {/* <Footer /> */}
         </div>
     )
 }

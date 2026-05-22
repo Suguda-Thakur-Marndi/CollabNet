@@ -4,9 +4,8 @@ import { Icon } from "@iconify/react"
 import { IoClose } from "react-icons/io5"
 import cn from "classnames"
 import { useEffect, useRef } from "react"
-import customMapping from "@/utils/customMapping"
+import { languageIdFromFileName } from "@/utils/codemirrorLanguage"
 import { useSettings } from "@/context/SettingContext"
-import langMap from "lang-map"
 
 function FileTab() {
     const {
@@ -50,21 +49,9 @@ function FileTab() {
         }
     }, [])
 
-    // Update the editor language when a file is opened
     useEffect(() => {
-        if (activeFile?.name === undefined) return
-        // Get file extension on file open and set language when file is opened
-        const extension = activeFile.name.split(".").pop()
-        if (!extension) return
-
-        // Check if custom mapping exists
-        if (customMapping[extension]) {
-            setLanguage(customMapping[extension])
-            return
-        }
-
-        const language = langMap.languages(extension)
-        setLanguage(language[0])
+        if (!activeFile?.name) return
+        setLanguage(languageIdFromFileName(activeFile.name))
     }, [activeFile?.name, setLanguage])
 
     return (

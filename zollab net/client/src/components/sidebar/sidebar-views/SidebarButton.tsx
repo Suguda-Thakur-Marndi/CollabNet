@@ -5,9 +5,11 @@ import { useState } from "react"
 import { Tooltip } from "react-tooltip"
 import { buttonStyles, tooltipStyles } from "../tooltipStyles"
 
+import { ReactNode } from "react"
+
 interface ViewButtonProps {
     viewName: VIEWS
-    icon: JSX.Element
+    icon: ReactNode
 }
 
 const ViewButton = ({ viewName, icon }: ViewButtonProps) => {
@@ -30,7 +32,11 @@ const ViewButton = ({ viewName, icon }: ViewButtonProps) => {
             <button
                 onClick={() => handleViewClick(viewName)}
                 onMouseEnter={() => setShowTooltip(true)} // Show tooltip again on hover
-                className={`${buttonStyles.base} ${buttonStyles.hover}`}
+                className={`${buttonStyles.base} ${buttonStyles.hover} ${
+                    viewName === activeView && isSidebarOpen
+                        ? "bg-darkHover text-primary"
+                        : ""
+                }`}
                 {...(showTooltip && {
                     "data-tooltip-id": `tooltip-${viewName}`,
                     "data-tooltip-content": viewName,

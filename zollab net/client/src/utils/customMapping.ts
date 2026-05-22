@@ -1,7 +1,11 @@
+/** File extension → CodeMirror language id (see utils/codemirrorLanguage.ts) */
 const customMapping: { [key: string]: string } = {
     php: "php",
-    cs: "csharp",
-    // Maybe add more languages here
+    cs: "cs",
+    jsx: "jsx",
+    tsx: "tsx",
+    mjs: "js",
+    cjs: "js",
 }
 
 export default customMapping

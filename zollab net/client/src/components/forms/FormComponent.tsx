@@ -4,6 +4,7 @@ import { SocketEvent } from "@/types/socket"
 import { USER_STATUS } from "@/types/user"
 import { ChangeEvent, FormEvent, useEffect, useRef } from "react"
 import { toast } from "react-hot-toast"
+import { LuCopy, LuSparkles } from "react-icons/lu"
 import { useLocation, useNavigate } from "react-router-dom"
 import { v4 as uuidv4 } from "uuid"
 import logo from "@/assets/logo.svg"
@@ -15,31 +16,48 @@ const FormComponent = () => {
 
     const usernameRef = useRef<HTMLInputElement | null>(null)
     const navigate = useNavigate()
+    const isJoining = status === USER_STATUS.ATTEMPTING_JOIN
 
     const createNewRoomId = () => {
-        setCurrentUser({ ...currentUser, roomId: uuidv4() })
-        toast.success("Created a new Room Id")
+        const roomId = uuidv4()
+        setCurrentUser({ ...currentUser, roomId })
+        toast.success("New room created — share the Room ID with your team")
         usernameRef.current?.focus()
     }
 
     const handleInputChanges = (e: ChangeEvent<HTMLInputElement>) => {
-        const name = e.target.name
-        const value = e.target.value
-        setCurrentUser({ ...currentUser, [name]: value })
+        const { name, value } = e.target
+        setCurrentUser((prev) => ({ ...prev, [name]: value }))
+    }
+
+    const copyRoomId = async () => {
+        if (!currentUser.roomId) {
+            toast.error("Generate or enter a Room ID first")
+            return
+        }
+        try {
+            await navigator.clipboard.writeText(currentUser.roomId)
+            toast.success("Room ID copied")
+        } catch {
+            toast.error("Could not copy Room ID")
+        }
     }
 
     const validateForm = () => {
         if (currentUser.username.trim().length === 0) {
             toast.error("Enter your username")
             return false
-        } else if (currentUser.roomId.trim().length === 0) {
-            toast.error("Enter a room id")
+        }
+        if (currentUser.roomId.trim().length === 0) {
+            toast.error("Enter a room ID")
             return false
-        } else if (currentUser.roomId.trim().length < 5) {
-            toast.error("ROOM Id must be at least 5 characters long")
+        }
+        if (currentUser.roomId.trim().length < 5) {
+            toast.error("Room ID must be at least 5 characters")
             return false
-        } else if (currentUser.username.trim().length < 3) {
-            toast.error("Username must be at least 3 characters long")
+        }
+        if (currentUser.username.trim().length < 3) {
+            toast.error("Username must be at least 3 characters")
             return false
         }
         return true
@@ -47,9 +65,9 @@ const FormComponent = () => {
 
     const joinRoom = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (status === USER_STATUS.ATTEMPTING_JOIN) return
+        if (isJoining) return
         if (!validateForm()) return
-        toast.loading("Joining room...")
+        toast.loading("Joining room…")
         setStatus(USER_STATUS.ATTEMPTING_JOIN)
         socket.emit(SocketEvent.JOIN_REQUEST, currentUser)
     }
@@ -57,12 +75,15 @@ const FormComponent = () => {
     useEffect(() => {
         if (currentUser.roomId.length > 0) return
         if (location.state?.roomId) {
-            setCurrentUser({ ...currentUser, roomId: location.state.roomId })
+            setCurrentUser((prev) => ({
+                ...prev,
+                roomId: location.state.roomId,
+            }))
             if (currentUser.username.length === 0) {
-                toast.success("Enter your username")
+                toast.success("Room ID filled in — enter your username")
             }
         }
-    }, [currentUser, location.state?.roomId, setCurrentUser])
+    }, [currentUser.roomId, currentUser.username.length, location.state?.roomId, setCurrentUser])
 
     useEffect(() => {
         if (status === USER_STATUS.DISCONNECTED && !socket.connected) {
@@ -76,9 +97,7 @@ const FormComponent = () => {
             const username = currentUser.username
             sessionStorage.setItem("redirect", "true")
             navigate(`/editor/${currentUser.roomId}`, {
-                state: {
-                    username,
-                },
+                state: { username },
             })
         } else if (status === USER_STATUS.JOINED && isRedirect) {
             sessionStorage.removeItem("redirect")
@@ -86,41 +105,71 @@ const FormComponent = () => {
             socket.disconnect()
             socket.connect()
         }
-    }, [currentUser, location.state?.redirect, navigate, setStatus, socket, status])
+    }, [currentUser, navigate, setStatus, socket, status])
 
     return (
-        <div className="flex w-full max-w-[500px] flex-col items-center justify-center gap-4 p-4 sm:w-[500px] sm:p-8">
-            <img src={logo} alt="Logo" className="w-full"/>
+        <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-2xl border border-border bg-surface/80 p-6 shadow-xl backdrop-blur-sm sm:p-8">
+            <div className="text-center">
+                <img src={logo} alt="Zollab Net" className="mx-auto w-full max-w-[280px]" />
+                <p className="mt-3 text-sm text-muted">
+                    Real-time collaborative coding — join a room and build together.
+                </p>
+            </div>
+
             <form onSubmit={joinRoom} className="flex w-full flex-col gap-4">
-                <input
-                    type="text"
-                    name="roomId"
-                    placeholder="Room Id"
-                    className="w-full rounded-md border border-gray-500 bg-darkHover px-3 py-3 focus:outline-none"
-                    onChange={handleInputChanges}
-                    value={currentUser.roomId}
-                />
-                <input
-                    type="text"
-                    name="username"
-                    placeholder="Username"
-                    className="w-full rounded-md border border-gray-500 bg-darkHover px-3 py-3 focus:outline-none"
-                    onChange={handleInputChanges}
-                    value={currentUser.username}
-                    ref={usernameRef}
-                />
+                <label className="flex flex-col gap-1.5 text-sm text-slate-300">
+                    Room ID
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            name="roomId"
+                            placeholder="e.g. my-team-room"
+                            className="input-field flex-1"
+                            onChange={handleInputChanges}
+                            value={currentUser.roomId}
+                            autoComplete="off"
+                        />
+                        <button
+                            type="button"
+                            onClick={copyRoomId}
+                            className="btn-secondary shrink-0 px-3"
+                            title="Copy Room ID"
+                        >
+                            <LuCopy size={18} />
+                        </button>
+                    </div>
+                </label>
+
+                <label className="flex flex-col gap-1.5 text-sm text-slate-300">
+                    Username
+                    <input
+                        type="text"
+                        name="username"
+                        placeholder="How others see you"
+                        className="input-field"
+                        onChange={handleInputChanges}
+                        value={currentUser.username}
+                        ref={usernameRef}
+                        autoComplete="username"
+                    />
+                </label>
+
                 <button
                     type="submit"
-                    className="mt-2 w-full rounded-md bg-primary px-8 py-3 text-lg font-semibold text-black"
+                    className="btn-primary mt-1 w-full py-3 text-base"
+                    disabled={isJoining}
                 >
-                    Join
+                    {isJoining ? "Joining…" : "Join room"}
                 </button>
             </form>
+
             <button
-                className="cursor-pointer select-none underline"
+                type="button"
+                className="btn-secondary flex w-full items-center justify-center gap-2"
                 onClick={createNewRoomId}
             >
-                Generate Unique Room Id
+                <LuSparkles size={18} />
+                Generate new Room ID
             </button>
         </div>
     )

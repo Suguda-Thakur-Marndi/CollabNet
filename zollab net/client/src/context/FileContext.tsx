@@ -625,7 +625,7 @@ function FileContextProvider({ children }: { children: ReactNode }) {
         }
 
         // Generate and save zip file
-        zip.generateAsync({ type: "blob" }).then((content) => {
+        zip.generateAsync({ type: "blob" }).then((content: Blob) => {
             saveAs(content, "download.zip")
         })
     }
@@ -647,7 +647,12 @@ function FileContextProvider({ children }: { children: ReactNode }) {
                 socketId: user.socketId,
             })
 
-            setUsers((prev) => [...prev, user])
+            setUsers((prev) => {
+                const withoutUser = prev.filter(
+                    (u) => u.username !== user.username,
+                )
+                return [...withoutUser, user]
+            })
         },
         [activeFile, drawingData, fileStructure, openFiles, setUsers, socket],
     )
@@ -720,8 +725,7 @@ function FileContextProvider({ children }: { children: ReactNode }) {
     const handleFileUpdated = useCallback(
         ({ fileId, newContent }: { fileId: Id; newContent: FileContent }) => {
             updateFileContent(fileId, newContent)
-            // Update the content of the active file if it's the same file
-            if (activeFile?.id === fileId) {
+            if (activeFile?.id === fileId && activeFile.content !== newContent) {
                 setActiveFile({ ...activeFile, content: newContent })
             }
         },
@@ -743,7 +747,7 @@ function FileContextProvider({ children }: { children: ReactNode }) {
     )
 
     useEffect(() => {
-        socket.once(SocketEvent.SYNC_FILE_STRUCTURE, handleFileStructureSync)
+        socket.on(SocketEvent.SYNC_FILE_STRUCTURE, handleFileStructureSync)
         socket.on(SocketEvent.USER_JOINED, handleUserJoined)
         socket.on(SocketEvent.DIRECTORY_CREATED, handleDirCreated)
         socket.on(SocketEvent.DIRECTORY_UPDATED, handleDirUpdated)
@@ -755,6 +759,7 @@ function FileContextProvider({ children }: { children: ReactNode }) {
         socket.on(SocketEvent.FILE_DELETED, handleFileDeleted)
 
         return () => {
+            socket.off(SocketEvent.SYNC_FILE_STRUCTURE)
             socket.off(SocketEvent.USER_JOINED)
             socket.off(SocketEvent.DIRECTORY_CREATED)
             socket.off(SocketEvent.DIRECTORY_UPDATED)

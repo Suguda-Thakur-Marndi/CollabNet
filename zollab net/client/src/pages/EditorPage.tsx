@@ -23,25 +23,56 @@ function EditorPage() {
     const location = useLocation()
 
     useEffect(() => {
-        if (currentUser.username.length > 0) return
-        const username = location.state?.username
-        if (username === undefined) {
+        const username = location.state?.username ?? currentUser.username
+        if (!username) {
             navigate("/", {
                 state: { roomId },
             })
-        } else if (roomId) {
-            const user: User = { username, roomId }
+            return
+        }
+        if (!roomId) return
+
+        const user: User = { username, roomId }
+        if (
+            currentUser.username !== username ||
+            currentUser.roomId !== roomId
+        ) {
             setCurrentUser(user)
+        }
+
+        if (
+            status !== USER_STATUS.JOINED &&
+            status !== USER_STATUS.CONNECTION_FAILED
+        ) {
             socket.emit(SocketEvent.JOIN_REQUEST, user)
         }
     }, [
+        currentUser.roomId,
         currentUser.username,
         location.state?.username,
         navigate,
         roomId,
         setCurrentUser,
         socket,
+        status,
     ])
+
+    useEffect(() => {
+        const rejoinRoom = () => {
+            if (
+                currentUser.username &&
+                currentUser.roomId &&
+                status === USER_STATUS.JOINED
+            ) {
+                socket.emit(SocketEvent.JOIN_REQUEST, currentUser)
+            }
+        }
+
+        socket.io.on("reconnect", rejoinRoom)
+        return () => {
+            socket.io.off("reconnect", rejoinRoom)
+        }
+    }, [currentUser, socket, status])
 
     if (status === USER_STATUS.CONNECTION_FAILED) {
         return <ConnectionStatusPage />

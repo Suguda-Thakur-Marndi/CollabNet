@@ -1,9 +1,9 @@
 import { useRunCode } from "@/context/RunCodeContext"
 import useResponsive from "@/hooks/useResponsive"
+import { Language } from "@/types/run"
 import { ChangeEvent } from "react"
 import toast from "react-hot-toast"
-import { LuCopy } from "react-icons/lu"
-import { PiCaretDownBold } from "react-icons/pi"
+import { LuCopy, LuPlay, LuRefreshCw } from "react-icons/lu"
 
 function RunView() {
     const { viewHeight } = useResponsive()
@@ -11,81 +11,146 @@ function RunView() {
         setInput,
         output,
         isRunning,
+        languagesLoading,
+        pistonSource,
         supportedLanguages,
         selectedLanguage,
         setSelectedLanguage,
         runCode,
+        refreshLanguages,
     } = useRunCode()
 
     const handleLanguageChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        const lang = JSON.parse(e.target.value)
-        setSelectedLanguage(lang)
+        const value = e.target.value
+        if (!value) return
+        setSelectedLanguage(JSON.parse(value) as Language)
     }
 
-    const copyOutput = () => {
-        navigator.clipboard.writeText(output)
-        toast.success("Output copied to clipboard")
+    const copyOutput = async () => {
+        if (!output) return
+        try {
+            await navigator.clipboard.writeText(output)
+            toast.success("Output copied")
+        } catch {
+            toast.error("Could not copy output")
+        }
     }
+
+    const sortedLanguages = [...supportedLanguages].sort((a, b) =>
+        a.language.localeCompare(b.language),
+    )
 
     return (
         <div
-            className="flex flex-col items-center gap-2 p-4"
+            className="flex flex-col gap-3 p-4"
             style={{ height: viewHeight }}
         >
-            <h1 className="view-title">Run Code</h1>
-            <div className="flex h-[90%] w-full flex-col items-end gap-2 md:h-[92%]">
-                <div className="relative w-full">
+            <div className="flex items-center justify-between gap-2">
+                <h1 className="view-title mb-0 border-0 pb-0">Run Code</h1>
+                <button
+                    type="button"
+                    onClick={() => refreshLanguages()}
+                    disabled={languagesLoading}
+                    className="btn-ghost shrink-0 p-2"
+                    title="Refresh languages"
+                >
+                    <LuRefreshCw
+                        size={18}
+                        className={languagesLoading ? "animate-spin" : ""}
+                    />
+                </button>
+            </div>
+
+            {pistonSource === "online" && (
+                <p className="text-xs text-emerald-400/90">
+                    Languages loaded. To execute code, use local Docker (
+                    <code className="text-[11px]">docker compose up -d</code>
+                    ) or set <code className="text-[11px]">VITE_PISTON_API_URL</code>.
+                </p>
+            )}
+            {pistonSource === "fallback" && (
+                <p className="text-xs text-amber-400/90">
+                    Limited language list — connect to the internet and refresh
+                    for all runtimes.
+                </p>
+            )}
+
+            <div className="flex min-h-0 flex-1 flex-col gap-3">
+                <label className="flex flex-col gap-1.5 text-sm text-slate-300">
+                    Language
                     <select
-                        className="w-full rounded-md border-none bg-darkHover px-4 py-2 text-white outline-none"
-                        value={JSON.stringify(selectedLanguage)}
+                        className="input-field w-full pr-10"
+                        value={
+                            selectedLanguage.language
+                                ? JSON.stringify(selectedLanguage)
+                                : ""
+                        }
                         onChange={handleLanguageChange}
+                        disabled={languagesLoading || sortedLanguages.length === 0}
                     >
-                        {supportedLanguages
-                            .sort((a, b) => (a.language > b.language ? 1 : -1))
-                            .map((lang, i) => {
-                                return (
+                        {languagesLoading ? (
+                            <option value="">Loading languages…</option>
+                        ) : (
+                            <>
+                                {!selectedLanguage.language && (
+                                    <option value="">
+                                        Select a language
+                                    </option>
+                                )}
+                                {sortedLanguages.map((lang) => (
                                     <option
-                                        key={i}
+                                        key={`${lang.language}-${lang.version}`}
                                         value={JSON.stringify(lang)}
                                     >
-                                        {lang.language +
-                                            (lang.version
-                                                ? ` (${lang.version})`
-                                                : "")}
+                                        {lang.language}
+                                        {lang.version ? ` (${lang.version})` : ""}
                                     </option>
-                                )
-                            })}
+                                ))}
+                            </>
+                        )}
                     </select>
-                    <PiCaretDownBold
-                        size={16}
-                        className="absolute bottom-3 right-4 z-10 text-white"
-                    />
-                </div>
-                <textarea
-                    className="min-h-[120px] w-full resize-none rounded-md border-none bg-darkHover p-2 text-white outline-none"
-                    placeholder="Write you input here..."
-                    onChange={(e) => setInput(e.target.value)}
-                />
-                <button
-                    className="flex w-full justify-center rounded-md bg-primary p-2 font-bold text-black outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={runCode}
-                    disabled={isRunning}
-                >
-                    Run
-                </button>
-                <label className="flex w-full justify-between">
-                    Output :
-                    <button onClick={copyOutput} title="Copy Output">
-                        <LuCopy
-                            size={18}
-                            className="cursor-pointer text-white"
-                        />
-                    </button>
                 </label>
-                <div className="w-full flex-grow resize-none overflow-y-auto rounded-md border-none bg-darkHover p-2 text-white outline-none">
-                    <code>
-                        <pre className="text-wrap">{output}</pre>
-                    </code>
+
+                <label className="flex min-h-[80px] flex-col gap-1.5 text-sm text-slate-300">
+                    Program input (stdin)
+                    <textarea
+                        className="input-field min-h-[80px] resize-y"
+                        placeholder="Optional input for your program…"
+                        onChange={(e) => setInput(e.target.value)}
+                    />
+                </label>
+
+                <button
+                    type="button"
+                    className="btn-primary flex w-full items-center justify-center gap-2"
+                    onClick={runCode}
+                    disabled={isRunning || languagesLoading}
+                >
+                    <LuPlay size={18} />
+                    {isRunning ? "Running…" : "Run"}
+                </button>
+
+                <div className="flex min-h-0 flex-1 flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-sm text-slate-300">
+                        <span>Output</span>
+                        <button
+                            type="button"
+                            onClick={copyOutput}
+                            disabled={!output}
+                            className="btn-ghost p-1.5 disabled:opacity-40"
+                            title="Copy output"
+                        >
+                            <LuCopy size={16} />
+                        </button>
+                    </div>
+                    <div className="output-panel min-h-[120px] flex-1 overflow-y-auto">
+                        <pre className="whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-slate-200">
+                            {output ||
+                                (isRunning
+                                    ? "Running…"
+                                    : "Output will appear here after you run code.")}
+                        </pre>
+                    </div>
                 </div>
             </div>
         </div>

@@ -132,7 +132,7 @@ function CopilotView() {
                                 </code>
                             )
                         },
-                        pre({ children }) {
+                        pre({ children }: any) {
                             return <pre className="h-full">{children}</pre>
                         },
                     }}

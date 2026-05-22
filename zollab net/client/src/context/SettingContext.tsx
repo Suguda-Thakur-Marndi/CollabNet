@@ -1,4 +1,5 @@
 import useLocalStorage from "@/hooks/useLocalStorage"
+import { resolveCodeMirrorLanguageId } from "@/utils/codemirrorLanguage"
 import {
     Settings,
     SettingsContext as SettingsContextType,
@@ -25,7 +26,7 @@ export const useSettings = (): SettingsContextType => {
 
 const defaultSettings: Settings = {
     theme: "Dracula",
-    language: "Javascript",
+    language: "js",
     fontSize: 16,
     fontFamily: "Space Mono",
     showGitHubCorner: true,
@@ -40,10 +41,14 @@ function SettingContextProvider({ children }: { children: ReactNode }) {
         storedSettings.theme !== undefined
             ? storedSettings.theme
             : defaultSettings.theme
-    const storedLanguage =
+    const storedLanguageRaw =
         storedSettings.language !== undefined
             ? storedSettings.language
             : defaultSettings.language
+    const storedLanguage = resolveCodeMirrorLanguageId(
+        undefined,
+        storedLanguageRaw,
+    )
     const storedFontSize =
         storedSettings.fontSize !== undefined
             ? storedSettings.fontSize

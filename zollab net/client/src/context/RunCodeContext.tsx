@@ -1,9 +1,16 @@
 import axiosInstance from "@/api/pistonApi"
-import { Language, RunContext as RunContextType } from "@/types/run"
-import langMap from "lang-map"
+import { executePistonCode } from "@/api/pistonExecute"
+import { PISTON_FALLBACK_LANGUAGES } from "@/constants/pistonFallbackLanguages"
+import {
+    Language,
+    PistonSource,
+    RunContext as RunContextType,
+} from "@/types/run"
+import { matchPistonLanguage } from "@/utils/matchPistonLanguage"
 import {
     ReactNode,
     createContext,
+    useCallback,
     useContext,
     useEffect,
     useState,
@@ -12,6 +19,8 @@ import toast from "react-hot-toast"
 import { useFileSystem } from "./FileContext"
 
 const RunCodeContext = createContext<RunContextType | null>(null)
+
+const EMPTY_LANGUAGE: Language = { language: "", version: "", aliases: [] }
 
 export const useRunCode = () => {
     const context = useContext(RunCodeContext)
@@ -28,75 +37,92 @@ const RunCodeContextProvider = ({ children }: { children: ReactNode }) => {
     const [input, setInput] = useState<string>("")
     const [output, setOutput] = useState<string>("")
     const [isRunning, setIsRunning] = useState<boolean>(false)
+    const [languagesLoading, setLanguagesLoading] = useState(true)
+    const [pistonSource, setPistonSource] = useState<PistonSource>("loading")
     const [supportedLanguages, setSupportedLanguages] = useState<Language[]>([])
-    const [selectedLanguage, setSelectedLanguage] = useState<Language>({
-        language: "",
-        version: "",
-        aliases: [],
-    })
+    const [selectedLanguage, setSelectedLanguage] =
+        useState<Language>(EMPTY_LANGUAGE)
 
-    useEffect(() => {
-        const fetchSupportedLanguages = async () => {
-            try {
-                const languages = await axiosInstance.get("/runtimes")
-                setSupportedLanguages(languages.data)
-            } catch (error: any) {
-                toast.error("Failed to fetch supported languages")
-                if (error?.response?.data) console.error(error?.response?.data)
+    const refreshLanguages = useCallback(async () => {
+        setLanguagesLoading(true)
+        setPistonSource("loading")
+        try {
+            const { data } = await axiosInstance.get<Language[]>("/runtimes")
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error("Empty runtimes list")
             }
+            setSupportedLanguages(data)
+            setPistonSource("online")
+        } catch (error) {
+            console.error("Piston runtimes fetch failed:", error)
+            setSupportedLanguages(PISTON_FALLBACK_LANGUAGES)
+            setPistonSource("fallback")
+            toast.error(
+                "Could not load full language list. Using common languages — run may fail until you are online.",
+                { duration: 5000 },
+            )
+        } finally {
+            setLanguagesLoading(false)
         }
-
-        fetchSupportedLanguages()
     }, [])
 
-    // Set the selected language based on the file extension
+    useEffect(() => {
+        refreshLanguages()
+    }, [refreshLanguages])
+
     useEffect(() => {
         if (supportedLanguages.length === 0 || !activeFile?.name) return
 
-        const extension = activeFile.name.split(".").pop()
-        if (extension) {
-            const languageName = langMap.languages(extension)
-            const language = supportedLanguages.find(
-                (lang) =>
-                    lang.aliases.includes(extension) ||
-                    languageName.includes(lang.language.toLowerCase()),
-            )
-            if (language) setSelectedLanguage(language)
-        } else setSelectedLanguage({ language: "", version: "", aliases: [] })
+        const matched = matchPistonLanguage(
+            supportedLanguages,
+            activeFile.name,
+        )
+        if (matched) {
+            setSelectedLanguage(matched)
+        }
     }, [activeFile?.name, supportedLanguages])
 
     const runCode = async () => {
+        if (!selectedLanguage.language) {
+            toast.error("Select a language to run your code")
+            return
+        }
+        if (!activeFile) {
+            toast.error("Open a file in the editor first")
+            return
+        }
+
+        const toastId = toast.loading("Running code...")
+        setIsRunning(true)
+        setOutput("")
+
         try {
-            if (!selectedLanguage) {
-                return toast.error("Please select a language to run the code")
-            } else if (!activeFile) {
-                return toast.error("Please open a file to run the code")
-            } else {
-                toast.loading("Running code...")
-            }
-
-            setIsRunning(true)
             const { language, version } = selectedLanguage
-
-            const response = await axiosInstance.post("/execute", {
+            const response = await executePistonCode({
                 language,
                 version,
-                files: [{ name: activeFile.name, content: activeFile.content }],
+                files: [
+                    { name: activeFile.name, content: activeFile.content ?? "" },
+                ],
                 stdin: input,
             })
-            if (response.data.run.stderr) {
-                setOutput(response.data.run.stderr)
+
+            const run = response.data?.run
+            if (run?.stderr) {
+                setOutput(run.stderr)
             } else {
-                setOutput(response.data.run.stdout)
+                setOutput(run?.stdout ?? "(no output)")
             }
+        } catch (error: unknown) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to run code. Check your language selection and try again."
+            setOutput(message)
+            toast.error(message, { duration: 6000 })
+        } finally {
             setIsRunning(false)
-            toast.dismiss()
-        } catch (error: any) {
-            console.error(error.response.data)
-            console.error(error.response.data.error)
-            setIsRunning(false)
-            toast.dismiss()
-            toast.error("Failed to run the code")
+            toast.dismiss(toastId)
         }
     }
 
@@ -106,10 +132,13 @@ const RunCodeContextProvider = ({ children }: { children: ReactNode }) => {
                 setInput,
                 output,
                 isRunning,
+                languagesLoading,
+                pistonSource,
                 supportedLanguages,
                 selectedLanguage,
                 setSelectedLanguage,
                 runCode,
+                refreshLanguages,
             }}
         >
             {children}

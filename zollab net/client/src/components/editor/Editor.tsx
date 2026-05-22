@@ -9,7 +9,7 @@ import { FileSystemItem } from "@/types/file"
 import { SocketEvent } from "@/types/socket"
 import { color } from "@uiw/codemirror-extensions-color"
 import { hyperLink } from "@uiw/codemirror-extensions-hyper-link"
-import { LanguageName, loadLanguage } from "@uiw/codemirror-extensions-langs"
+import { loadCodeMirrorLanguageExtension } from "@/utils/codemirrorLanguage"
 import CodeMirror, {
     Extension,
     ViewUpdate,
@@ -33,9 +33,10 @@ function Editor() {
     )
     const [extensions, setExtensions] = useState<Extension[]>([])
     const editorRef = useRef<any>(null)
+    const highlightWarnedRef = useRef<string | null>(null)
     const [lastCursorPosition, setLastCursorPosition] = useState<number>(0)
     const [lastSelection, setLastSelection] = useState<{start?: number, end?: number}>({})
-    const cursorMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const cursorMoveTimeoutRef = useRef<any | null>(null)
 
     const onCodeChange = (code: string, view: ViewUpdate) => {
         if (!activeFile) return
@@ -112,20 +113,31 @@ function Editor() {
             EditorView.updateListener.of(handleSelectionChange),
             scrollPastEnd(),
         ]
-        const langExt = loadLanguage(language.toLowerCase() as LanguageName)
+        const langExt = loadCodeMirrorLanguageExtension(
+            activeFile?.name,
+            language,
+        )
         if (langExt) {
             extensions.push(langExt)
+            highlightWarnedRef.current = null
         } else {
-            toast.error(
-                "Syntax highlighting is unavailable for this language. Please adjust the editor settings; it may be listed under a different name.",
-                {
-                    duration: 5000,
-                },
-            )
+            const warnKey = `${activeFile?.name ?? ""}:${language}`
+            if (highlightWarnedRef.current !== warnKey) {
+                highlightWarnedRef.current = warnKey
+                toast.error(
+                    `Syntax highlighting is not available for "${language}". Try another language in Settings.`,
+                    { duration: 4000 },
+                )
+            }
         }
 
         setExtensions(extensions)
-    }, [filteredUsers, language, handleSelectionChange])
+    }, [
+        activeFile?.name,
+        filteredUsers,
+        language,
+        handleSelectionChange,
+    ])
 
     // Update remote users when filteredUsers changes
     useEffect(() => {

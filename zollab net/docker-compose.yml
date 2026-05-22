@@ -1,0 +1,11 @@
+# Optional: run code locally (required for "Run" — public execute API is restricted).
+# Start: docker compose up -d
+# Then set in client/.env: VITE_PISTON_API_URL=http://localhost:2000/api/v2
+services:
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: zollab-piston
+    privileged: true
+    ports:
+      - "2000:2000"
+    restart: unless-stopped

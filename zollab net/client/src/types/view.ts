@@ -1,3 +1,5 @@
+import { ReactNode } from "react"
+
 enum VIEWS {
     FILES = "FILES",
     CHATS = "CHATS",
@@ -12,8 +14,8 @@ interface ViewContext {
     setActiveView: (activeView: VIEWS) => void
     isSidebarOpen: boolean
     setIsSidebarOpen: (isSidebarOpen: boolean) => void
-    viewComponents: { [key in VIEWS]: JSX.Element }
-    viewIcons: { [key in VIEWS]: JSX.Element }
+    viewComponents: { [key in VIEWS]: ReactNode }
+    viewIcons: { [key in VIEWS]: ReactNode }
 }
 
 export { ViewContext, VIEWS }

@@ -30,18 +30,13 @@ export const useSocket = (): SocketContextType => {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"
 
 const SocketProvider = ({ children }: { children: ReactNode }) => {
-    const {
-        users,
-        setUsers,
-        setStatus,
-        setCurrentUser,
-        drawingData,
-        setDrawingData,
-    } = useAppContext()
+    const { setUsers, setStatus, setCurrentUser, drawingData, setDrawingData } =
+        useAppContext()
     const socket: Socket = useMemo(
         () =>
             io(BACKEND_URL, {
-                reconnectionAttempts: 2,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000,
             }),
         [],
     )
@@ -82,9 +77,11 @@ const SocketProvider = ({ children }: { children: ReactNode }) => {
     const handleUserLeft = useCallback(
         ({ user }: { user: User }) => {
             toast.success(`${user.username} left the room`)
-            setUsers(users.filter((u: User) => u.username !== user.username))
+            setUsers((prev) =>
+                prev.filter((u) => u.username !== user.username),
+            )
         },
-        [setUsers, users],
+        [setUsers],
     )
 
     const handleRequestDrawing = useCallback(
