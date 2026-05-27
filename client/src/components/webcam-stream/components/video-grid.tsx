@@ -1,7 +1,10 @@
 import { getSocket } from "@/lib/socket"
+import { cn } from "@/lib/utils"
 import type { RefObject } from "react"
+import { useState } from "react"
 import Avatar from "react-avatar"
 
+import { useAudioLevelDetector } from "../hooks/useAudioLevelDetector"
 import type { StreamUser } from "../types"
 import { VideoControls } from "./video-controls"
 
@@ -14,6 +17,7 @@ interface VideoGridProps {
     speakerOn: boolean
     users: StreamUser[]
     videoRef: RefObject<HTMLVideoElement | null>
+    streamRef?: RefObject<MediaStream | null>
 }
 
 export const VideoGrid = ({
@@ -25,6 +29,7 @@ export const VideoGrid = ({
     remoteStreams,
     remoteMicStates,
     remoteSpeakerStates,
+    streamRef,
 }: VideoGridProps) => {
     const currentUserId = getSocket().id ?? ""
     const currentUsername =
@@ -32,6 +37,32 @@ export const VideoGrid = ({
     const remoteUsers = users.filter(
         (user) => user.id && user.id !== currentUserId,
     )
+
+    // Detect when local user is speaking
+    const isLocalSpeaking = useAudioLevelDetector({
+        mediaStream: streamRef?.current || null,
+        userId: currentUserId,
+    })
+
+    // Track speaking states for remote users
+    const [remoteSpeakingStates, setRemoteSpeakingStates] = useState<
+        Record<string, boolean>
+    >({})
+
+    // Detect when remote users are speaking
+    remoteUsers.forEach((user) => {
+        const isSpeaking = useAudioLevelDetector({
+            mediaStream: remoteStreams[user.id] || null,
+            userId: user.id,
+        })
+
+        if (isSpeaking !== remoteSpeakingStates[user.id]) {
+            setRemoteSpeakingStates((prev) => ({
+                ...prev,
+                [user.id]: isSpeaking,
+            }))
+        }
+    })
 
     return (
         <div
@@ -42,7 +73,9 @@ export const VideoGrid = ({
             }}
         >
             <div className="relative">
-                <div className="webcam-tile">
+                <div
+                    className="webcam-tile transition-all duration-200"
+                >
                     <video
                         autoPlay
                         className="size-full scale-x-[-1] object-cover"
@@ -66,6 +99,7 @@ export const VideoGrid = ({
                         remoteSpeakerStates={remoteSpeakerStates}
                         speakersOn={speakerOn}
                         userId={currentUserId}
+                        isSpeaking={isLocalSpeaking}
                     />
                     <div className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded bg-black/50 px-2 py-1 text-sm text-white">
                         {currentUsername} (you)
@@ -84,7 +118,9 @@ export const VideoGrid = ({
             ) : (
                 remoteUsers.map((user) => (
                     <div className="relative" key={user.id}>
-                        <div className="webcam-tile">
+                        <div
+                            className="webcam-tile transition-all duration-200"
+                        >
                             {remoteStreams[user.id] ? (
                                 <video
                                     autoPlay
@@ -114,6 +150,7 @@ export const VideoGrid = ({
                                 remoteSpeakerStates={remoteSpeakerStates}
                                 speakersOn={speakerOn}
                                 userId={user.id}
+                                isSpeaking={remoteSpeakingStates[user.id] || false}
                             />
                             <div className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded bg-black/50 px-2 py-1 text-sm text-white">
                                 {user.username}

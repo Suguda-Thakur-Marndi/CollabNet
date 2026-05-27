@@ -112,6 +112,7 @@ const WebcamStream = () => {
                 speakerOn={speakerOn}
                 users={allUsers}
                 videoRef={videoRef}
+                streamRef={streamRef}
             />
 
             <div className="webcam-stream__controls">
