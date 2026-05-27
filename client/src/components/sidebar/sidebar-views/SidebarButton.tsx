@@ -27,16 +27,21 @@ const ViewButton = ({ viewName, icon }: ViewButtonProps) => {
         }
     }
 
+    const isActive = viewName === activeView && isSidebarOpen
+
     return (
         <div className="relative flex flex-col items-center">
             <button
                 onClick={() => handleViewClick(viewName)}
                 onMouseEnter={() => setShowTooltip(true)}
-                className={`${buttonStyles.base} ${buttonStyles.hover} ${
-                    viewName === activeView && isSidebarOpen
-                        ? "bg-darkHover text-primary"
-                        : ""
+                className={`${buttonStyles.base} ${buttonStyles.hover} transition-all duration-200 ${
+                    isActive
+                        ? "bg-darkHover text-primary ring-2 ring-primary/40"
+                        : "text-slate-400 hover:text-slate-200"
                 }`}
+                aria-label={viewName}
+                aria-pressed={isActive}
+                title={viewName}
                 {...(showTooltip && {
                     "data-tooltip-id": `tooltip-${viewName}`,
                     "data-tooltip-content": viewName,
@@ -45,7 +50,7 @@ const ViewButton = ({ viewName, icon }: ViewButtonProps) => {
                 <div className="flex items-center justify-center">{icon}</div>
                 
                 {viewName === VIEWS.CHATS && isNewMessage && (
-                    <div className="absolute right-0 top-0 h-3 w-3 rounded-full bg-primary"></div>
+                    <div className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-primary animate-pulse"></div>
                 )}
             </button>
             
