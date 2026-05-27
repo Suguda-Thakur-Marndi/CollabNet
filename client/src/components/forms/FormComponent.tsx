@@ -4,7 +4,7 @@ import { SocketEvent } from "@/types/socket"
 import { USER_STATUS } from "@/types/user"
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
-import { LuCopy, LuSparkles, LuAlertCircle, LuCheckCircle } from "react-icons/lu"
+import { LuCopy, LuSparkles, LuCheck } from "react-icons/lu"
 import { useLocation, useNavigate } from "react-router-dom"
 import { v4 as uuidv4 } from "uuid"
 import logo from "@/assets/logo.png"
@@ -181,7 +181,7 @@ const FormComponent = () => {
                             />
                             {roomIdValidated && (
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                                    <LuCheckCircle size={18} />
+                                    <LuCheck size={18} />
                                 </div>
                             )}
                         </div>
@@ -197,7 +197,7 @@ const FormComponent = () => {
                     </div>
                     {errors.roomId && (
                         <div id="roomId-error" className="flex items-center gap-1 text-error">
-                            <LuAlertCircle size={16} />
+                            <LuAlertTriangle size={16} />
                             <span>{errors.roomId}</span>
                         </div>
                     )}
@@ -224,13 +224,13 @@ const FormComponent = () => {
                         />
                         {usernameValidated && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                                <LuCheckCircle size={18} />
+                                <LuCheck size={18} />
                             </div>
                         )}
                     </div>
                     {errors.username && (
                         <div id="username-error" className="flex items-center gap-1 text-error">
-                            <LuAlertCircle size={16} />
+                            <LuAlertTriangle size={16} />
                             <span>{errors.username}</span>
                         </div>
                     )}
