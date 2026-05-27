@@ -56,22 +56,30 @@ function FileTab() {
 
     return (
         <div
-            className="flex h-[50px] w-full select-none gap-2 overflow-x-auto p-2 pb-0"
+            className="flex h-[50px] w-full select-none gap-1.5 overflow-x-auto border-b border-border bg-surface p-2 pb-0"
             ref={fileTabRef}
+            role="tablist"
+            aria-label="Open files"
         >
             {openFiles.map((file) => (
                 <span
                     key={file.id}
                     className={cn(
-                        "flex w-fit cursor-pointer items-center rounded-t-md px-2 py-1 text-white",
-                        { "bg-darkHover": file.id === activeFile?.id },
+                        "flex w-fit items-center gap-2 rounded-t-md px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-darkHover/50",
+                        { 
+                            "bg-darkHover text-primary border-b-2 border-primary": file.id === activeFile?.id,
+                            "text-slate-300 hover:text-slate-100": file.id !== activeFile?.id,
+                        }
                     )}
                     onClick={() => changeActiveFile(file.id)}
+                    role="tab"
+                    aria-selected={file.id === activeFile?.id}
+                    title={file.name}
                 >
                     <Icon
                         icon={getIconClassName(file.name)}
-                        fontSize={22}
-                        className="mr-2 min-w-fit"
+                        fontSize={18}
+                        className="shrink-0"
                     />
                     <p
                         className="flex-grow cursor-pointer overflow-hidden truncate"
@@ -79,11 +87,17 @@ function FileTab() {
                     >
                         {file.name}
                     </p>
-                    <IoClose
-                        className="ml-3 inline rounded-md hover:bg-darkHover"
-                        size={20}
-                        onClick={() => closeFile(file.id)}
-                    />
+                    <button
+                        className="ml-1 shrink-0 rounded-md p-1 transition-colors hover:bg-slate-700/30 hover:text-slate-100"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            closeFile(file.id)
+                        }}
+                        aria-label={`Close ${file.name}`}
+                        title={`Close ${file.name}`}
+                    >
+                        <IoClose size={16} />
+                    </button>
                 </span>
             ))}
         </div>

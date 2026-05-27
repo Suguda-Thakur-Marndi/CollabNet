@@ -1,15 +1,17 @@
 export const tooltipStyles = {
-    backgroundColor: '#e0e0e0',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    color: '#000',
-    fontSize: '12px',
+    backgroundColor: '#1f2937',
+    padding: '10px 14px',
+    borderRadius: '8px',
+    color: '#e5e7eb',
+    fontSize: '13px',
     fontWeight: '500',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    border: '1px solid #374151',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
+    maxWidth: '200px',
 }
 
 export const buttonStyles = {
-    base: "relative flex items-center justify-center rounded transition-colors duration-200 ease-in-out p-2",
+    base: "relative flex items-center justify-center rounded transition-all duration-200 ease-in-out p-2 focus:outline-none focus:ring-2 focus:ring-offset-0",
     hover: "hover:bg-[#3D404A]",
 }
 
