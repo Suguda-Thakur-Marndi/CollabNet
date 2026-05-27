@@ -471,13 +471,13 @@ body {
     }
 }
 
-@keyframes up-down {
-    0% {
-        transform: translateY(-20px);
-    }
-    100% {
-        transform: translateY(0px);
-    }
+/* Animation utilities */
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-up-down {
+    animation: up-down 3s ease-in-out infinite;
 }
 
 .cm-editor {
