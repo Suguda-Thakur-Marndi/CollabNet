@@ -21,17 +21,36 @@
     outline: none;
     transition:
         border-color 0.15s,
-        box-shadow 0.15s;
+        box-shadow 0.15s,
+        background-color 0.15s;
+    font-size: 1rem;
+}
+
+.input-field:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    background-color: color-mix(in srgb, var(--color-darkHover) 80%, var(--color-primary));
 }
 
 .input-field:focus {
-    border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent);
+    background-color: var(--color-dark);
 }
 
 .input-field:disabled {
     cursor: not-allowed;
     opacity: 0.6;
+    background-color: var(--color-dark);
+}
+
+.input-field.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.input-field.error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
 }
 
 .btn-primary {
@@ -40,22 +59,56 @@
     padding: 0.625rem 1rem;
     font-weight: 600;
     color: #000;
+    border: none;
+    cursor: pointer;
     transition:
         filter 0.15s,
-        transform 0.1s;
+        transform 0.1s,
+        box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    outline-offset: 2px;
 }
 
 .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.1);
+    filter: brightness(1.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
 }
 
 .btn-primary:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: scale(0.96) translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:focus:not(:disabled) {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
 }
 
 .btn-primary:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+}
+
+.btn-primary.loading {
+    pointer-events: none;
+    position: relative;
+    color: transparent;
+}
+
+.btn-primary.loading::after {
+    content: "";
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    top: 50%;
+    left: 50%;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    border-top-color: #000;
+    animation: spinner 0.6s linear infinite;
 }
 
 .btn-secondary {
@@ -65,27 +118,66 @@
     padding: 0.625rem 1rem;
     font-weight: 500;
     color: #fff;
+    cursor: pointer;
     transition:
         background-color 0.15s,
-        border-color 0.15s;
+        border-color 0.15s,
+        box-shadow 0.15s,
+        transform 0.1s;
+    outline-offset: 2px;
 }
 
 .btn-secondary:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+    border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
     background-color: var(--color-darkHover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn-secondary:focus:not(:disabled) {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.btn-secondary:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .btn-ghost {
     border-radius: 0.5rem;
     color: #cbd5e1;
+    border: none;
+    cursor: pointer;
     transition:
         background-color 0.15s,
-        color 0.15s;
+        color 0.15s,
+        box-shadow 0.15s;
+    outline-offset: 2px;
 }
 
 .btn-ghost:hover:not(:disabled) {
     background-color: var(--color-darkHover);
     color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-ghost:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.btn-ghost:focus:not(:disabled) {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.btn-ghost:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .editor-layout {
@@ -431,4 +523,122 @@ select {
     80% {
         transform: rotate(10deg);
     }
+}
+
+/* Loading and spinner animations */
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading state utilities */
+.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spinner 0.6s linear infinite;
+}
+
+.spinner-small {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-width: 1.5px;
+}
+
+/* Error and success states */
+.text-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.text-success {
+    color: #10b981;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Form group styling */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+/* Improved focus state */
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Smooth transitions for state changes */
+* {
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+button,
+input,
+textarea,
+select {
+    transition:
+        color 0.15s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
