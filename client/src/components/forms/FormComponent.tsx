@@ -196,8 +196,8 @@ const FormComponent = () => {
                         </button>
                     </div>
                     {errors.roomId && (
-                        <div id="roomId-error" className="flex items-center gap-1 text-error">
-                            <LuAlertTriangle size={16} />
+                        <div id="roomId-error" className="flex items-center gap-1.5 text-error text-sm">
+                            <span className="font-bold">•</span>
                             <span>{errors.roomId}</span>
                         </div>
                     )}
@@ -229,8 +229,8 @@ const FormComponent = () => {
                         )}
                     </div>
                     {errors.username && (
-                        <div id="username-error" className="flex items-center gap-1 text-error">
-                            <LuAlertTriangle size={16} />
+                        <div id="username-error" className="flex items-center gap-1.5 text-error text-sm">
+                            <span className="font-bold">•</span>
                             <span>{errors.username}</span>
                         </div>
                     )}
