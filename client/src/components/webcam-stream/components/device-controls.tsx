@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 import { type ElementType, useCallback, useEffect, useRef, useState } from "react"
 import { FiChevronDown } from "react-icons/fi"
 import toast from "react-hot-toast"
-import { tooltipStyles } from "@/components/sidebar/tooltipStyles"
+import { tooltipStyles, tooltipBorder } from "@/components/sidebar/tooltipStyles"
 import { Tooltip } from "react-tooltip"
 
 import type { MediaDevice } from "../types"
@@ -174,6 +174,7 @@ const DeviceControls = ({
                 place="top"
                 className="!z-[100]"
                 style={tooltipStyles}
+                border={tooltipBorder}
             />
 
             {menuOpen && (

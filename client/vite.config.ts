@@ -11,12 +11,13 @@ export default defineConfig({
       events: 'events',
       buffer: 'buffer',
       process: 'process/browser',
+      util: 'util',
     },
   },
   define: {
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['simple-peer', 'buffer', 'process'],
+    include: ['simple-peer', 'buffer', 'process', 'util'],
   },
 })

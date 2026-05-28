@@ -11,7 +11,7 @@ import {
     FiVolume2,
     FiVolumeX,
 } from "react-icons/fi"
-import { tooltipStyles } from "@/components/sidebar/tooltipStyles"
+import { tooltipStyles, tooltipBorder } from "@/components/sidebar/tooltipStyles"
 import { Tooltip } from "react-tooltip"
 
 import { DeviceControls } from "./components/device-controls"
@@ -206,6 +206,7 @@ const WebcamStream = () => {
                 place="top"
                 className="!z-[100]"
                 style={tooltipStyles}
+                border={tooltipBorder}
             />
         </div>
     )

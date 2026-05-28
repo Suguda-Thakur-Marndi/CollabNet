@@ -35,6 +35,8 @@ function FileTab() {
         if (!fileTabNode) return
 
         const handleWheel = (e: WheelEvent) => {
+            // Prevent default scroll behavior to enable horizontal scrolling
+            e.preventDefault()
             if (e.deltaY > 0) {
                 fileTabNode.scrollLeft += 100
             } else {
@@ -42,7 +44,8 @@ function FileTab() {
             }
         }
 
-        fileTabNode.addEventListener("wheel", handleWheel)
+        // Non-passive listener required because preventDefault() is called
+        fileTabNode.addEventListener("wheel", handleWheel, { passive: false })
 
         return () => {
             fileTabNode.removeEventListener("wheel", handleWheel)
