@@ -3,6 +3,8 @@ import { ReactNode, memo, useState } from "react"
 import { useViews } from "@/context/ViewContext"
 import { useChatRoom } from "@/context/ChatContext"
 import { VIEWS } from "@/types/view"
+import { Tooltip } from "react-tooltip"
+import { buttonStyles, tooltipStyles, tooltipBorder } from "../tooltipStyles"
 
 interface ViewButtonProps {
     viewName: VIEWS
@@ -59,6 +61,7 @@ const ViewButton = memo(({ viewName, icon }: ViewButtonProps) => {
                     offset={25}
                     className="!z-50"
                     style={tooltipStyles}
+                    border={tooltipBorder}
                     noArrow={false}
                     positionStrategy="fixed"
                     float={true}

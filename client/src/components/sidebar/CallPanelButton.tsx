@@ -4,7 +4,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { useState } from "react"
 import { LuVideo } from "react-icons/lu"
 import { Tooltip } from "react-tooltip"
-import { buttonStyles, tooltipStyles } from "./tooltipStyles"
+import { buttonStyles, tooltipStyles, tooltipBorder } from "./tooltipStyles"
 
 function CallPanelButton() {
     const { callPanelOpen, toggleCallPanel } = useAppContext()
@@ -43,8 +43,7 @@ function CallPanelButton() {
                     place="right"
                     offset={25}
                     className="!z-50"
-                    style={tooltipStyles}
-                    noArrow={false}
+                    style={tooltipStyles}                    border={tooltipBorder}                    noArrow={false}
                     positionStrategy="fixed"
                     float={true}
                 />

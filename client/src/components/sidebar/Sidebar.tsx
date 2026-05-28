@@ -13,7 +13,7 @@ import { MdOutlineDraw } from "react-icons/md"
 import cn from "classnames"
 import { Tooltip } from 'react-tooltip'
 import { useState } from 'react'
-import { tooltipStyles } from "./tooltipStyles"
+import { tooltipStyles, tooltipBorder } from "./tooltipStyles"
 
 function Sidebar() {
     const {
@@ -104,6 +104,7 @@ function Sidebar() {
                             offset={15}
                             className="!z-50"
                             style={tooltipStyles}
+                            border={tooltipBorder}
                             noArrow={false}
                             positionStrategy="fixed"
                             float={true}
