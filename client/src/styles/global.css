@@ -167,6 +167,12 @@
 }
 
 .btn-ghost:active:not(:disabled) {
+    button:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 30%, transparent);
+        z-index: 2;
+    }
     transform: scale(0.96);
 }
 

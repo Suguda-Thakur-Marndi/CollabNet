@@ -3,8 +3,9 @@ import useResponsive from "@/hooks/useResponsive"
 import cn from "classnames"
 import Editor from "./Editor"
 import FileTab from "./FileTab"
+import { memo } from "react"
 
-function EditorComponent() {
+const EditorComponent = memo(function EditorComponent() {
     const { openFiles } = useFileSystem()
     const { minHeightReached } = useResponsive()
 
@@ -33,6 +34,6 @@ function EditorComponent() {
             <Editor />
         </main>
     )
-}
+})
 
 export default EditorComponent

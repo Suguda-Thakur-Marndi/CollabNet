@@ -1,18 +1,15 @@
-import { useChatRoom } from "@/context/ChatContext"
-import { useViews } from "@/context/ViewContext"
-import { VIEWS } from "@/types/view"
-import { useState } from "react"
-import { Tooltip } from "react-tooltip"
-import { buttonStyles, tooltipStyles } from "../tooltipStyles"
 
-import { ReactNode } from "react"
+import { ReactNode, memo, useState } from "react"
+import { useViews } from "@/context/ViewContext"
+import { useChatRoom } from "@/context/ChatContext"
+import { VIEWS } from "@/types/view"
 
 interface ViewButtonProps {
     viewName: VIEWS
     icon: ReactNode
 }
 
-const ViewButton = ({ viewName, icon }: ViewButtonProps) => {
+const ViewButton = memo(({ viewName, icon }: ViewButtonProps) => {
     const { activeView, setActiveView, isSidebarOpen, setIsSidebarOpen } =
         useViews()
     const { isNewMessage } = useChatRoom()
@@ -39,9 +36,10 @@ const ViewButton = ({ viewName, icon }: ViewButtonProps) => {
                         ? "bg-darkHover text-primary ring-2 ring-primary/40"
                         : "text-slate-400 hover:text-slate-200"
                 }`}
-                aria-label={viewName}
+                aria-label={`Open ${viewName} panel`}
                 aria-pressed={isActive}
                 title={viewName}
+                tabIndex={0}
                 {...(showTooltip && {
                     "data-tooltip-id": `tooltip-${viewName}`,
                     "data-tooltip-content": viewName,
@@ -68,6 +66,6 @@ const ViewButton = ({ viewName, icon }: ViewButtonProps) => {
             )}
         </div>
     )
-}
+})
 
 export default ViewButton

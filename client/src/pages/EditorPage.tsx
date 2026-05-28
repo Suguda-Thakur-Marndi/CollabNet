@@ -1,8 +1,10 @@
 import SplitterComponent from "@/components/SplitterComponent"
-import CallPanel from "@/components/call/CallPanel"
+import { Suspense, lazy } from "react"
 import ConnectionStatusPage from "@/components/connection/ConnectionStatusPage"
-import Sidebar from "@/components/sidebar/Sidebar"
-import WorkSpace from "@/components/workspace"
+
+const Sidebar = lazy(() => import("@/components/sidebar/Sidebar"))
+const WorkSpace = lazy(() => import("@/components/workspace"))
+const CallPanel = lazy(() => import("@/components/call/CallPanel"))
 import { useAppContext } from "@/context/AppContext"
 import { useSocket } from "@/context/SocketContext"
 import useFullScreen from "@/hooks/useFullScreen"
@@ -80,13 +82,19 @@ function EditorPage() {
 
     return (
         <SplitterComponent>
-            <Sidebar />
+            <Suspense fallback={<div className="w-[50px] h-full bg-dark border-r border-darkHover" />}> 
+                <Sidebar />
+            </Suspense>
             <div
                 className="editor-layout flex min-h-0 min-w-0 flex-1 flex-col md:flex-row"
                 data-call-open={callPanelOpen ? "true" : "false"}
             >
-                <WorkSpace />
-                <CallPanel />
+                <Suspense fallback={<div className="flex-1 bg-dark" />}> 
+                    <WorkSpace />
+                </Suspense>
+                <Suspense fallback={null}>
+                    <CallPanel />
+                </Suspense>
             </div>
         </SplitterComponent>
     )

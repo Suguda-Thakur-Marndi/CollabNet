@@ -375,7 +375,7 @@ server.listen(PORT, () => {
 	console.log(`Listening on port ${PORT}`)
 })
 
-// Graceful shutdown
+
 process.on('SIGTERM', () => {
 	console.log('SIGTERM signal received: closing HTTP server')
 	server.close(() => {

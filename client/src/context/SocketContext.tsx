@@ -99,6 +99,18 @@ const SocketProvider = ({ children }: { children: ReactNode }) => {
         [setDrawingData],
     )
 
+    const handleUserJoined = useCallback(
+        ({ user }: { user: RemoteUser }) => {
+            setUsers((prev) => {
+                const exists = prev.some((u) => u.id === user.id)
+                if (exists) return prev
+                return [...prev, user]
+            })
+            toast.success(`${user.username} joined the room`)
+        },
+        [setUsers],
+    )
+
     useEffect(() => {
         setSocket(socket)
         
@@ -112,6 +124,7 @@ const SocketProvider = ({ children }: { children: ReactNode }) => {
         socket.on("connect_failed", handleError)
         socket.on(SocketEvent.USERNAME_EXISTS, handleUsernameExist)
         socket.on(SocketEvent.JOIN_ACCEPTED, handleJoiningAccept)
+        socket.on(SocketEvent.USER_JOINED, handleUserJoined)
         socket.on(SocketEvent.USER_DISCONNECTED, handleUserLeft)
         socket.on(SocketEvent.REQUEST_DRAWING, handleRequestDrawing)
         socket.on(SocketEvent.SYNC_DRAWING, handleDrawingSync)
@@ -121,6 +134,7 @@ const SocketProvider = ({ children }: { children: ReactNode }) => {
             socket.off("connect_failed")
             socket.off(SocketEvent.USERNAME_EXISTS)
             socket.off(SocketEvent.JOIN_ACCEPTED)
+            socket.off(SocketEvent.USER_JOINED)
             socket.off(SocketEvent.USER_DISCONNECTED)
             socket.off(SocketEvent.REQUEST_DRAWING)
             socket.off(SocketEvent.SYNC_DRAWING)
@@ -130,6 +144,7 @@ const SocketProvider = ({ children }: { children: ReactNode }) => {
         handleError,
         handleJoiningAccept,
         handleRequestDrawing,
+        handleUserJoined,
         handleUserLeft,
         handleUsernameExist,
         setUsers,

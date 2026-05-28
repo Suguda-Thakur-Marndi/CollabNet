@@ -8,8 +8,8 @@ function HomePage() {
                 <div className="flex w-full max-w-md flex-col items-center lg:max-w-lg lg:items-start">
                     <img
                         src={illustration}
-                        alt="Collaborative coding"
-                        className="animate-up-down w-full max-w-[320px] sm:max-w-[400px] drop-shadow-lg"
+                        alt="Illustration showing collaborative coding with multiple users"
+                        className="animate-up-down w-full max-w-[320px] sm:max-w-[400px] drop-shadow-lg mb-6"
                     />
                     <ul className="mt-8 hidden space-y-3 text-sm text-slate-300 lg:block">
                         <li className="flex items-start gap-3">

@@ -2,8 +2,9 @@ import CallsView from "@/components/call/CallsView"
 import { useAppContext } from "@/context/AppContext"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import cn from "classnames"
+import { memo } from "react"
 
-function CallPanel() {
+const CallPanel = memo(function CallPanel() {
     const { callPanelOpen, setCallPanelOpen } = useAppContext()
     const { isMobile } = useWindowDimensions()
 
@@ -18,6 +19,7 @@ function CallPanel() {
                     type="button"
                     className="call-panel-backdrop"
                     aria-label="Close call panel"
+                    tabIndex={0}
                     onClick={close}
                 />
             )}
@@ -32,6 +34,6 @@ function CallPanel() {
             </aside>
         </>
     )
-}
+})
 
 export default CallPanel
