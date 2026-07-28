@@ -1,4 +1,4 @@
-# CollabNet - Collaborative Code Editor
+Net - Collaborative Code Editor
 
 A real-time collaborative code editor platform built with modern web technologies. CollabNet enables multiple users to code together, communicate via chat and video calls, and share their work seamlessly.
 
