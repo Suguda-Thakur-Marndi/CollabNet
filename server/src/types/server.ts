@@ -365,7 +365,14 @@ io.on("connection", (socket: Socket) => {
 	})
 })
 
-const PORT = process.env.PORT || 3000
+// Health check endpoints for ALB target group and container orchestration
+app.get("/healthz", (_req: Request, res: Response) => {
+	res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() })
+})
+
+app.get("/readyz", (_req: Request, res: Response) => {
+	res.status(200).json({ status: "ready" })
+})
 
 app.get("/", (_req: Request, res: Response) => {
 	res.sendFile(path.join(__dirname, "..", "public", "index.html"))
@@ -375,10 +382,22 @@ server.listen(PORT, () => {
 	console.log(`Listening on port ${PORT}`)
 })
 
-
-process.on('SIGTERM', () => {
-	console.log('SIGTERM signal received: closing HTTP server')
-	server.close(() => {
-		console.log('HTTP server closed')
+const gracefulShutdown = (signal: string) => {
+	console.log(`${signal} signal received: closing HTTP and Socket.IO server`)
+	io.close(() => {
+		console.log('Socket.IO server closed')
+		server.close(() => {
+			console.log('HTTP server closed')
+			process.exit(0)
+		})
 	})
-})
+	// Force shutdown after 10s if connections fail to drain
+	setTimeout(() => {
+		console.error('Forcefully terminating process after timeout')
+		process.exit(1)
+	}, 10000).unref()
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+

@@ -1,11 +1,68 @@
-# Optional: run code locally (required for "Run" — public execute API is restricted).
-# Start: docker compose up -d
-# Then set in client/.env: VITE_PISTON_API_URL=http://localhost:2000/api/v2
+# CollabNet Production-Parity Local Orchestration
+# Run: docker compose up --build -d
+# Stop: docker compose down
+
 services:
+  # Code Execution Engine
   piston:
     image: ghcr.io/engineer-man/piston:latest
     container_name: collab-piston
     privileged: true
     ports:
       - "2000:2000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:2000/api/v2/runtimes || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Socket.IO multi-node adapter & rate-limiting
+  redis:
+    image: redis:7-alpine
+    container_name: collab-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express + Socket.IO Backend API
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: collab-server
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PISTON_URL=http://piston:2000/api/v2
+    depends_on:
+      redis:
+        condition: service_healthy
+      piston:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # React 19 Frontend SPA (Nginx)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        - VITE_SERVER_URL=http://localhost:3000
+        - VITE_PISTON_API_URL=http://localhost:2000/api/v2
+    container_name: collab-client
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
     restart: unless-stopped
