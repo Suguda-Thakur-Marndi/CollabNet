@@ -1,5 +1,4 @@
 import { getSocket } from "@/lib/socket"
-import { cn } from "@/lib/utils"
 import type { RefObject } from "react"
 import { useState } from "react"
 import Avatar from "react-avatar"

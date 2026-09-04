@@ -15,4 +15,5 @@ interface User {
 	selectionEnd?: number
 }
 
-export { USER_CONNECTION_STATUS, User }
+export { USER_CONNECTION_STATUS }
+export type { User }

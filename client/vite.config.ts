@@ -18,11 +18,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['simple-peer', 'buffer', 'process'],
-    rolldownOptions: {
-      define: {
-        global: 'globalThis',
-      },
-    },
   },
   ssr: {
     external: ['util'],

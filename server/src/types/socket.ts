@@ -39,4 +39,5 @@ interface SocketContext {
 	socket: Socket
 }
 
-export { SocketEvent, SocketContext, SocketId }
+export { SocketEvent }
+export type { SocketContext, SocketId }
