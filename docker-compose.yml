@@ -3,20 +3,6 @@
 # Stop: docker compose down
 
 services:
-  # Code Execution Engine
-  piston:
-    image: ghcr.io/engineer-man/piston:latest
-    container_name: collab-piston
-    privileged: true
-    ports:
-      - "2000:2000"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:2000/api/v2/runtimes || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Redis for Socket.IO multi-node adapter & rate-limiting
   redis:
     image: redis:7-alpine
@@ -31,7 +17,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Express + Socket.IO Backend API
+  # Express + Socket.IO Backend API (includes interactive terminal WebSocket streaming)
   server:
     build:
       context: ./server
@@ -44,11 +30,8 @@ services:
       - NODE_ENV=development
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - PISTON_URL=http://piston:2000/api/v2
     depends_on:
       redis:
-        condition: service_healthy
-      piston:
         condition: service_healthy
     restart: unless-stopped
 
@@ -59,10 +42,10 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_SERVER_URL=http://localhost:3000
-        - VITE_PISTON_API_URL=http://localhost:2000/api/v2
     container_name: collab-client
     ports:
       - "8080:80"
     depends_on:
       - server
     restart: unless-stopped
+

@@ -33,10 +33,11 @@ The project consists of three main components:
 - **CORS**: Enabled for cross-origin requests
 - **Environment Config**: dotenv
 
-### Code Execution (Optional)
-- **Docker Container**: Piston API for code execution
-- **Supported Languages**: 50+ programming languages
-- **Deployment**: Can run locally or use public API
+### Code Execution & Interactive Terminal
+- **Interactive Cloud Terminal**: Built-in xterm.js terminal streamed in real time via WebSockets
+- **Full Shell Capabilities**: Supports Python, Node.js, C/C++, Bash, REPLs, and package managers
+- **Deployment**: Local PTY runner in development; sandboxed AWS EC2/container worker in production
+
 
 ## 📁 Project Structure
 
@@ -125,13 +126,9 @@ CollabNet/
    ```
    The client will start on `http://localhost:5173`
 
-3. **(Optional) Start Piston for code execution**
+3. **(Optional) Run local Redis & Server via Docker Compose**
    ```bash
    docker compose up -d
-   ```
-   Configure the client to use local Piston by setting in `client/.env`:
-   ```
-   VITE_PISTON_API_URL=http://localhost:2000/api/v2
    ```
 
 #### Production Build
@@ -163,6 +160,7 @@ CollabNet/
 | TypeScript | Type-safe development |
 | Vite | Fast build tool |
 | Tailwind CSS | Styling |
+| xterm.js | Interactive terminal emulator |
 | Socket.IO | Real-time communication |
 | Simple Peer | P2P video/voice |
 | CodeMirror | Code editing |
@@ -175,7 +173,7 @@ CollabNet/
 |-----------|---------|
 | Express.js | Web framework |
 | TypeScript | Type safety |
-| Socket.IO | WebSocket server |
+| Socket.IO | WebSocket server (Terminal & Collab streaming) |
 | CORS | Cross-origin support |
 | dotenv | Environment variables |
 
@@ -191,10 +189,12 @@ CollabNet/
 - **Video/Voice Calls**: P2P connections using WebRTC
 - **User Presence**: See who's active and online
 
-### Code Execution
-- Run code in 50+ programming languages
-- Output display and error handling
-- Integration with Piston API
+### Interactive Cloud Terminal & Code Execution
+- Full interactive web terminal powered by xterm.js
+- Real-time PTY bi-directional streaming over WebSockets
+- Run compilers, interpreters (Python, Node, C++), REPLs, shell scripts, and CLI tools
+- In development: Local PTY session runner
+- In production: Sandboxed AWS EC2 / container terminal worker
 
 ### Drawing & Whiteboarding
 - Collaborative drawing canvas
@@ -212,7 +212,6 @@ CollabNet/
 Create `client/.env`:
 ```
 VITE_SERVER_URL=http://localhost:3000
-VITE_PISTON_API_URL=https://api.piston.codes/api/v2
 ```
 
 ### Environment Variables (Server)
@@ -244,6 +243,7 @@ npm run lint     # Run ESLint
 
 ### Client Components
 - **`Editor`**: Main code editor with syntax highlighting
+- **`TerminalPanel`**: Interactive xterm.js terminal with PTY streaming
 - **`ChatList/ChatInput`**: Real-time chat interface
 - **`CallPanel`**: Video/voice call interface
 - **`DrawingEditor`**: Collaborative whiteboard
@@ -253,6 +253,7 @@ npm run lint     # Run ESLint
 
 ### Client Context (State Management)
 - **`AppContext`**: Global application state
+- **`TerminalContext`**: Interactive terminal state and execution dispatch
 - **`ChatContext`**: Chat messages and state
 - **`FileContext`**: File management
 - **`SocketContext`**: WebSocket connection
@@ -269,10 +270,10 @@ npm run lint     # Run ESLint
 
 ## 🔌 API Integration
 
-### Piston API (Code Execution)
-- Execute code in multiple languages
-- Integration point: `src/api/pistonExecute.ts`
-- Fallback languages configuration: `src/constants/pistonFallbackLanguages.ts`
+### Interactive Terminal (Code Execution)
+- Bi-directional PTY streaming via WebSockets
+- Frontend: `@xterm/xterm` with FitAddon
+- Backend: Terminal session manager streaming over Socket.IO to local/AWS terminal worker
 
 ### Pollinations API (Optional)
 - Image generation or AI features
@@ -284,7 +285,7 @@ Real-time communication events handled by Socket.IO:
 - File updates and synchronization
 - User presence and activity
 - Chat messages
-- Code execution results
+- Terminal I/O streaming (`terminal:init`, `terminal:data`, `terminal:resize`, `terminal:clear`)
 - Drawing canvas updates
 - Call initiation and status
 
@@ -311,15 +312,10 @@ node scripts/test-collaboration.mjs
 
 ## 📦 Docker Support
 
-Run Piston API locally for code execution:
+Run local multi-service stack (Redis & Server):
 ```bash
 docker compose up -d
 ```
-
-Container details:
-- **Image**: ghcr.io/engineer-man/piston:latest
-- **Port**: 2000
-- **Auto-restart**: Enabled
 
 ## 🚀 Deployment
 
@@ -332,9 +328,10 @@ Container details:
 - Run: `npm start`
 - Ensure environment variables are set on the hosting platform
 
-### Docker Deployment
-- Include docker-compose.yml for Piston container
-- Configure container networking and port mappings
+### Cloud Terminal Deployment (AWS)
+- Deploy the EC2 Terminal Worker in an isolated private subnet
+- Route terminal WebSocket sessions through ALB and ECS Fargate
+
 
 ## 📖 Additional Resources
 

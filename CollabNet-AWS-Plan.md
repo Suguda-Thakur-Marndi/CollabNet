@@ -4,7 +4,7 @@
 
 ## 1. Executive Summary & Current State Audit
 
-CollabNet is a full-stack collaborative IDE supporting real-time multi-cursor editing, collaborative whiteboarding (tldraw), P2P video/voice calls (simple-peer), and multi-language code execution (Piston). 
+CollabNet is a full-stack collaborative IDE supporting real-time multi-cursor editing, collaborative whiteboarding (tldraw), P2P video/voice calls (simple-peer), and interactive multi-language code execution via an AWS Cloud Terminal. 
 
 In its current state, CollabNet functions effectively as a local development prototype. However, deploying it to production on AWS introduces immediate failure points across networking, state synchronization, security, and scalability.
 
@@ -16,7 +16,7 @@ In its current state, CollabNet functions effectively as a local development pro
 | **Backend** | Single Express + Socket.IO process, in-memory array (`userSocketMap: User[]`) | Cannot scale horizontally. Multi-task deployments fail as users land on different nodes without state sync | **ECS Fargate** (2+ tasks) behind an **Application Load Balancer (ALB)** with sticky sessions |
 | **State Sync** | None (Node.js RAM only) | Process crash or scale event drops all room state, users, and cursor positions | **ElastiCache for Redis** (`@socket.io/redis-adapter`) for cross-node event broadcasting |
 | **Database** | None | Rooms, files, chat history, and whiteboard snapshots vanish on restart | **Amazon Aurora Serverless v2 (PostgreSQL)** + optional **DynamoDB** for append-only chat logs |
-| **Code Execution** | Direct client HTTP call to `localhost:2000` (Piston) or public API | Exposing arbitrary code execution or calling `localhost` fails for internet users. Public Piston rate-limits/blocks requests | **Piston on dedicated EC2** in an isolated private subnet, proxied exclusively via the backend with strict quotas and network jail |
+| **Code Execution & Terminal** | Direct client HTTP call to `localhost:2000` (Piston) or public API | Static HTTP execution lacks interactive stdin, REPLs, debugging, and terminal CLI tools. Exposing Piston publicly introduces rate-limits and security risks | **Interactive AWS Terminal Worker (EC2 + Sandboxed Docker PTY)** streamed over bi-directional WebSockets (`xterm.js` ↔ Socket.IO ↔ EC2 Worker) with strict cgroups quotas, non-root execution, and metadata blocking |
 | **Video / Voice** | WebRTC mesh (`simple-peer`), signaling via Socket.IO, zero TURN servers | Calls fail for 20–30% of users behind symmetric NATs / corporate firewalls. Mesh bandwidth explodes at $O(N^2)$, degrading past 4–6 participants | **Coturn on EC2 in Public Subnet** with Elastic IP, or **LiveKit SFU / Amazon Chime SDK** |
 | **Auth & Security** | Free-form username string, no authentication, no room privacy, permissive CORS | Anyone can impersonate users, overwrite files, or eavesdrop on rooms. No rate limiting | **Amazon Cognito User Pools** + JWT validation via `aws-jwt-verify` in Socket.IO connection handshake |
 | **Storage & Assets** | In-memory only | No project persistence, asset uploads, or whiteboard snapshot retention | **Amazon S3** utilizing **Direct Presigned URLs** to prevent saturating the Node.js event loop |
@@ -41,13 +41,13 @@ In its current state, CollabNet functions effectively as a local development pro
   - Deploy **ElastiCache Redis** using `@socket.io/redis-adapter` or `@socket.io/redis-streams-adapter`.
   - Enable **ALB Sticky Sessions** (cookie-based), OR configure the client to enforce pure WebSocket transport (`transports: ['websocket']`).
 
-### Risk 3: Arbitrary Code Execution Sandbox Vulnerability
-- **The Issue**: Allowing users to execute arbitrary code (Python, C++, Bash, Node.js) on server infrastructure exposes severe attack vectors: crypto-mining, fork-bombs, accessing AWS instance metadata (`169.254.169.254`), or scanning internal VPC resources (RDS/Redis).
-- **The Fargate Myth**: Piston utilizes `isolate`, which requires Linux namespaces, cgroups, and root capabilities (`privileged: true`). **AWS Fargate does NOT support privileged mode**; therefore, Piston cannot run on standard Fargate tasks.
+### Risk 3: Arbitrary Code Execution & Terminal Sandbox Security
+- **The Issue**: Providing an open interactive terminal (running bash, sh, python, gcc, node) on AWS infrastructure exposes attack vectors: crypto-mining, fork-bombs, memory exhaustion, scanning internal VPC resources (RDS/Redis), or querying the AWS EC2 Instance Metadata Service (`169.254.169.254`) to steal IAM credentials.
 - **Remediation**:
-  - Run Piston on a dedicated EC2 instance in a private subnet.
-  - Disable all outbound internet access (`--network none` in container runs) to eliminate SSRF and data exfiltration.
-  - Proxy all execution requests through the backend with strict per-user rate limiting (e.g., 5 runs/minute) and timeouts (5 seconds max execution time).
+  - Run terminal sessions inside lightweight, unprivileged Docker containers on a dedicated EC2 Worker instance in an isolated private subnet.
+  - Apply strict cgroups limits (`pids-limit 100`, memory limit 512MB, CPU quota 1.0 core).
+  - Enforce iptables rules blocking container bridge access to `169.254.169.254` and VPC internal database CIDRs.
+  - Route all bi-directional terminal input/output through Socket.IO authenticated channels with per-room session bounds.
 
 ---
 
@@ -64,7 +64,7 @@ In its current state, CollabNet functions effectively as a local development pro
 | **High-Volume Chat Logs** | **DynamoDB** (or Aurora PostgreSQL) | Partition Key: `room_id`, Sort Key: `timestamp` with TTL for automatic cleanup |
 | **Authentication & RBAC** | **Amazon Cognito User Pools** | Handles signup, login, OAuth (GitHub/Google), and issues RS256-signed JWTs |
 | **File & Asset Storage** | **Amazon S3** | Direct presigned `putObject`/`getObject` URLs for file uploads and whiteboard backups |
-| **Code Execution Engine** | **EC2 (`c6i.large` / `t3.medium`)** | Running Docker with Piston; isolated in a strictly private subnet; accessible only by ECS tasks |
+| **Interactive Cloud Terminal** | **EC2 (`t3.medium` / `c6i.large`)** | Running containerized PTY worker daemon; isolated in private subnet; manages ephemeral sandboxed container shells per room |
 | **WebRTC TURN/STUN** | **EC2 (`t3.small`) with Coturn** | Placed in **Public Subnet** with Elastic IP; Security Group allowing UDP/TCP 3478, 5349, and relay ports 49152–65535 |
 | **AI Assistant / Copilot** | **Amazon Bedrock** | Anthropic Claude 3.5 Sonnet / Haiku invoked via backend streaming route (`/api/ai/copilot`) |
 | **Edge Security** | **AWS WAF** | Attached to CloudFront and ALB; rate limiting on `/socket.io/` and API endpoints, AWS Managed Rules (Common & Known Bad Inputs) |
@@ -103,7 +103,7 @@ flowchart TB
         subgraph PrivateDataSubnets[Private Isolated Subnets: 10.0.30.0/24, 10.0.40.0/24]
             REDIS[(ElastiCache Redis\nSocket.IO Adapter)]
             AURORA[(Aurora Serverless v2\nPostgreSQL)]
-            PISTON[EC2: Piston Sandbox\nNo Internet / Network Isolated]
+            TERMINAL[EC2: AWS Terminal Worker\nSandboxed Container PTYs]
         end
     end
 
@@ -121,7 +121,7 @@ flowchart TB
     Client -->|2. HTTPS / Static Assets| CF
     CF -->|Origin Request via OAC| S3_FE
     Client -->|3. Authenticate| COGNITO
-    Client -->|4. WSS / API Traffic| ALB
+    Client -->|4. WSS / API Traffic & xterm.js Stream| ALB
     WAF -.->|Inspect / Filter| CF
     WAF -.->|Inspect / Filter| ALB
     Client <===>|5. WebRTC Media Relay\nUDP 49152-65535| COTURN
@@ -133,8 +133,8 @@ flowchart TB
     ECS2 <===>|Cross-Node Pub/Sub| REDIS
     ECS1 --->|Queries & Writes| AURORA
     ECS2 --->|Queries & Writes| AURORA
-    ECS1 --->|Sandboxed Execution HTTP| PISTON
-    ECS2 --->|Sandboxed Execution HTTP| PISTON
+    ECS1 <===>|Bi-directional PTY WebSocket Stream| TERMINAL
+    ECS2 <===>|Bi-directional PTY WebSocket Stream| TERMINAL
     
     %% Outbound / External Services
     ECS1 -.->|Generate Presigned URLs| S3_ASSETS
@@ -320,39 +320,56 @@ CREATE INDEX idx_rooms_slug ON rooms(slug);
 
 ---
 
-### 5.4 Sandboxed Code Execution Proxy Architecture
+### 5.4 Interactive AWS Cloud Terminal & Code Execution Architecture
 
-In the current code, [pistonExecute.ts](file:///c:/Users/sugud/OneDrive/Documents/CollabNet/client/src/api/pistonExecute.ts) attempts direct calls from the client. In AWS production, all execution MUST be routed through the backend:
+Instead of static HTTP code execution via Piston, CollabNet utilizes an **interactive AWS Cloud Terminal** powered by `xterm.js` on the frontend, bi-directional Socket.IO streaming on the backend, and an **AWS EC2 Terminal Worker** hosting sandboxed container PTYs:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Collaborator
+    actor User as Collaborator Browser
+    participant Xterm as xterm.js (Frontend)
     participant Backend as ECS Fargate Task
-    participant RateLimiter as Redis Rate Limiter
-    participant Piston as Piston EC2 (Private Subnet)
+    participant Worker as AWS EC2 Terminal Worker
+    participant PTY as Sandboxed Docker PTY Container
 
-    User->>Backend: POST /api/execute (JWT + Language + Code)
-    Backend->>RateLimiter: Check user quota (e.g., 5 req/min)
-    alt Rate Limit Exceeded
-        RateLimiter-->>Backend: Denied
-        Backend-->>User: 429 Too Many Requests
-    else Allowed
-        Backend->>Piston: POST /api/v2/execute (internal 10.0.30.x:2000)
-        Note over Piston: Runs container with --network none<br/>Memory limit: 256MB<br/>CPU quota: 1 core<br/>Timeout: 5 seconds
-        Piston-->>Backend: Return stdout / stderr / exit code
-        Backend-->>User: Return Execution Result JSON
-        Backend->>Backend: Broadcast EXECUTION_COMPLETED to Room Sockets
+    User->>Xterm: Open Terminal / Run File
+    Xterm->>Backend: emit('terminal:init', { roomId })
+    Backend->>Worker: Request Terminal Session (roomId)
+    Worker->>PTY: Spawn ephemeral container (sh/bash, 512MB RAM, 1 CPU)
+    PTY-->>Worker: PTY ready (stdout stream)
+    Worker-->>Backend: Forward PTY stream
+    Backend-->>Xterm: emit('terminal:data', initialPrompt)
+    
+    loop Interactive Session
+        User->>Xterm: Keystrokes (e.g. 'python3 main.py\n')
+        Xterm->>Backend: emit('terminal:data', { roomId, data })
+        Backend->>Worker: Pipe stdin
+        Worker->>PTY: Write to PTY
+        PTY-->>Worker: Output stream (stdout/stderr chunks)
+        Worker-->>Backend: Forward raw ANSI chunks
+        Backend-->>Xterm: emit('terminal:data', { data })
+        Xterm-->>User: Immediate live ANSI render
+    end
+
+    opt Window Resize
+        User->>Xterm: Resizes browser / terminal drawer
+        Xterm->>Backend: emit('terminal:resize', { roomId, cols, rows })
+        Backend->>Worker: Resize PTY dimensions
     end
 ```
 
-#### Security Guardrails on Piston EC2:
-1. **Network Jail**: The Piston runner container executes with `--network none`, ensuring arbitrary code cannot initiate outbound network sockets.
-2. **Resource Quotas**: Hard-coded limits in Piston config:
-   - Max execution time: 5,000 ms.
-   - Max output size: 65,536 bytes.
-   - Max memory: 256 MB per runner process.
-3. **IAM Metadata Block**: Local `iptables` rule on the EC2 host drops all traffic targeting `169.254.169.254` from within Docker containers.
+#### Security Guardrails on the AWS Terminal Worker:
+1. **Container Jail**: Each room session runs within a dedicated container (`user: 1000:1000`, `--network bridge` or restricted egress, `/tmp` restricted).
+2. **Strict Resource Quotas (cgroups)**:
+   - Max PIDs: 100 (eliminates fork bombs).
+   - Max Memory: 512 MB per session container.
+   - Max CPU: 1.0 vCPU core.
+3. **IAM Metadata Block**: Host `iptables` rule drops all packets directed at `169.254.169.254` originating from Docker bridge interfaces:
+   ```bash
+   iptables -I DOCKER-USER -d 169.254.169.254 -j DROP
+   ```
+4. **Automatic Reaping**: Inactive sessions automatically terminate after 15 minutes of idle time.
 
 ---
 
@@ -466,7 +483,7 @@ export async function streamCodeCompletion(prompt: string, contextCode: string, 
 | **ALB** | ~$18.00 + LCU fees (~$22.00) | ~$35.00 |
 | **Redis (ElastiCache)** | `cache.t4g.micro` (1 node) = ~$13.00 | `cache.t4g.small` (Multi-AZ) = ~$52.00 |
 | **Database (Aurora PostgreSQL)** | Serverless v2 (0.5 ACU min) = ~$43.00 | Serverless v2 (1–4 ACUs) = ~$120.00 |
-| **Code Execution (Piston EC2)** | 1x `t3.medium` spot/on-demand = ~$15.00–$30.00 | 1x `c6i.large` dedicated = ~$60.00 |
+| **Terminal Worker (EC2)** | 1x `t3.medium` spot/on-demand = ~$15.00–$30.00 | 1x `c6i.large` dedicated = ~$60.00 |
 | **WebRTC Relay (Coturn EC2)** | 1x `t3.micro` = ~$8.00 + egress | 1x `t3.small` + egress (~$25.00) |
 | **NAT Solution** | `fck-nat` (`t4g.nano`) = ~$3.20 | 2x AWS NAT Gateways = ~$65.00+ |
 | **Total Estimated Cost** | **~$120.00 – $145.00 / month** | **~$430.00 – $550.00 / month** |
@@ -486,7 +503,7 @@ infra/
 │   ├── data-stack.ts               # Aurora Serverless v2, ElastiCache Redis, S3
 │   ├── auth-stack.ts               # Cognito User Pool, App Clients, Identity Pool
 │   ├── compute-stack.ts            # ECS Cluster, Fargate Task Def, ALB, Target Groups
-│   ├── execution-stack.ts          # EC2 Piston Sandbox, EC2 Coturn TURN Server
+│   ├── execution-stack.ts          # EC2 Terminal Worker Sandbox, EC2 Coturn TURN Server
 │   ├── frontend-stack.ts           # CloudFront Distribution, S3 Frontend Bucket, ACM
 │   └── monitoring-stack.ts         # CloudWatch Dashboard, Alarms, SNS Topic
 ├── cdk.json
@@ -561,7 +578,7 @@ jobs:
 - [x] Create production multi-stage `Dockerfile` and `.dockerignore` for `server/`.
 - [x] Create production multi-stage `Dockerfile` and `.dockerignore` for `client/` (Nginx SPA).
 - [x] Add `/healthz` and `/readyz` endpoints to Express backend for ALB health checking.
-- [x] Provide unified `docker-compose.yml` for local multi-service testing (client, server, redis, piston).
+- [x] Provide unified `docker-compose.yml` for local multi-service testing (client, server, redis).
 
 ### Phase 2: Database Persistence & Cross-Node Synchronization
 - [ ] Deploy Aurora Serverless v2 PostgreSQL instance and run migration script.
@@ -571,7 +588,7 @@ jobs:
 
 ### Phase 3: Auth, Sandboxed Execution & TURN Infrastructure
 - [ ] Create Cognito User Pool and integrate `aws-jwt-verify` in Socket.IO middleware.
-- [ ] Deploy Piston on dedicated EC2 in private subnet; migrate client code runner to `/api/execute`.
+- [ ] Deploy AWS Terminal Worker on dedicated EC2 in private subnet; connect backend PTY streaming via WebSockets.
 - [ ] Deploy Coturn on EC2 in Public Subnet with Elastic IP; inject TURN credentials into client WebRTC config.
 - [ ] Replace Pollinations AI with Amazon Bedrock streaming route.
 

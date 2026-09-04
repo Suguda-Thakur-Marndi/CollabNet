@@ -5,6 +5,7 @@ import http from "http"
 import cors from "cors"
 import { SocketEvent, type SocketId } from "./socket"
 import { USER_CONNECTION_STATUS, type User } from "./user"
+import { terminalManager } from "./terminalManager"
 import { Server, Socket } from "socket.io"
 import path from "path"
 import { fileURLToPath } from "url"
@@ -364,6 +365,58 @@ io.on("connection", (socket: Socket) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
 		socket.to(roomId).emit(SocketEvent.CAMERA_OFF, socket.id)
+	})
+
+	socket.on(SocketEvent.TERMINAL_INIT, ({ cols = 80, rows = 24 }: { cols?: number; rows?: number } = {}) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+
+		terminalManager.getOrCreateSession(
+			roomId,
+			(data) => {
+				io.to(roomId).emit(SocketEvent.TERMINAL_DATA, { data })
+			},
+			() => {
+				io.to(roomId).emit(SocketEvent.TERMINAL_DATA, { data: "\r\n\x1b[33m[Process exited]\x1b[0m\r\n" })
+			},
+			cols,
+			rows
+		)
+	})
+
+	socket.on(SocketEvent.TERMINAL_DATA, ({ data }: { data: string }) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId || typeof data !== "string") return
+		const session = terminalManager.getSession(roomId)
+		if (session) {
+			session.write(data)
+		}
+	})
+
+	socket.on(SocketEvent.TERMINAL_RESIZE, ({ cols, rows }: { cols: number; rows: number }) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		const session = terminalManager.getSession(roomId)
+		if (session && typeof cols === "number" && typeof rows === "number") {
+			session.resize(cols, rows)
+		}
+	})
+
+	socket.on(SocketEvent.TERMINAL_KILL, () => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		terminalManager.closeSession(roomId)
+		io.to(roomId).emit(SocketEvent.TERMINAL_DATA, { data: "\r\n\x1b[31m[Terminal session restarted]\x1b[0m\r\n" })
+	})
+
+	socket.on("disconnecting", () => {
+		const roomId = getRoomId(socket.id)
+		if (roomId) {
+			const remainingUsers = getUsersInRoom(roomId).filter((u) => u.socketId !== socket.id)
+			if (remainingUsers.length === 0) {
+				terminalManager.closeSession(roomId)
+			}
+		}
 	})
 })
 

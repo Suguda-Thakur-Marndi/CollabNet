@@ -33,6 +33,11 @@ enum SocketEvent {
 	MIC_STATE = "mic-state",
 	SPEAKER_STATE = "speaker-state",
 	CAMERA_OFF = "camera-off",
+	TERMINAL_INIT = "terminal:init",
+	TERMINAL_DATA = "terminal:data",
+	TERMINAL_RESIZE = "terminal:resize",
+	TERMINAL_CLEAR = "terminal:clear",
+	TERMINAL_KILL = "terminal:kill",
 }
 
 interface SocketContext {
