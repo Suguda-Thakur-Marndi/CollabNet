@@ -3,7 +3,6 @@ import { useFileSystem } from "@/context/FileContext"
 import { useSettings } from "@/context/SettingContext"
 import { useSocket } from "@/context/SocketContext"
 import usePageEvents from "@/hooks/usePageEvents"
-import useResponsive from "@/hooks/useResponsive"
 import { editorThemes } from "@/resources/Themes"
 import { FileSystemItem } from "@/types/file"
 import { SocketEvent } from "@/types/socket"
@@ -25,7 +24,6 @@ function Editor() {
     const { activeFile, setActiveFile } = useFileSystem()
     const { theme, language, fontSize } = useSettings()
     const { socket } = useSocket()
-    const { viewHeight } = useResponsive()
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const filteredUsers = useMemo(
         () => users.filter((u) => u.username !== currentUser.username),
@@ -161,10 +159,12 @@ function Editor() {
             value={activeFile?.content}
             extensions={extensions}
             minHeight="100%"
-            maxWidth="100vw"
+            height="100%"
+            maxWidth="100%"
+            className="h-full w-full"
             style={{
                 fontSize: fontSize + "px",
-                height: viewHeight,
+                height: "100%",
                 position: "relative",
             }}
         />

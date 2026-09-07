@@ -1,29 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-    --color-dark: #1e1f26;
-    --color-darkHover: #2d2f36;
-    --color-primary: #00e676;
-    --color-danger: #ff5252;
-    --color-surface: #25262e;
-    --color-surface-elevated: #32343d;
-    --color-border: #3d404a;
-    --color-muted: #9ca3af;
-    --font-sans: "Space Grotesk", system-ui, sans-serif;
-    --font-mono: "Space Mono", ui-monospace, monospace;
+    --color-dark: #0b0f17;
+    --color-darkHover: #1a2234;
+    --color-primary: #3b82f6;
+    --color-primaryHover: #2563eb;
+    --color-accent: #22c55e;
+    --color-accentHover: #16a34a;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-surface: #111827;
+    --color-surface-elevated: #161f30;
+    --color-border: #26334a;
+    --color-border-subtle: #1a2333;
+    --color-muted: #94a3b8;
+    --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: dark;
 }
 
 body {
     background-color: var(--color-dark);
-    color: #fff;
+    color: #f8fafc;
     font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 ::selection {
-    background-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+    background-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+    color: #ffffff;
 }

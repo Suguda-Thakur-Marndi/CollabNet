@@ -19,20 +19,19 @@ function RenameView({ id, preName, setEditing, type }: RenameViewProps) {
         e.stopPropagation()
 
         const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1)
+        const trimmed = name.trim()
 
-        if (name === "") {
+        if (trimmed === "") {
             toast.error(`${capitalizedType} name cannot be empty`)
-        } else if (name.length > 25) {
-            toast.error(
-                `${capitalizedType} name cannot be longer than 25 characters`,
-            )
-        } else if (name === preName) {
-            toast.error(`${capitalizedType} name cannot be the same as before`)
+        } else if (trimmed.length > 50) {
+            toast.error(`${capitalizedType} name cannot be longer than 50 characters`)
+        } else if (trimmed === preName) {
+            setEditing(false)
         } else {
             const isRenamed =
                 type === "directory"
-                    ? renameDirectory(id, name)
-                    : renameFile(id, name)
+                    ? renameDirectory(id, trimmed)
+                    : renameFile(id, trimmed)
 
             if (isRenamed && type === "file") {
                 openFile(id)
@@ -59,9 +58,7 @@ function RenameView({ id, preName, setEditing, type }: RenameViewProps) {
     const handleDocumentEvent = useCallback(
         (e: KeyboardEvent | MouseEvent) => {
             const formNode = formRef.current
-
             if (formNode && !formNode.contains(e.target as Node)) {
-
                 setEditing(false)
             }
         },
@@ -70,11 +67,9 @@ function RenameView({ id, preName, setEditing, type }: RenameViewProps) {
 
     useEffect(() => {
         const formNode = formRef.current
-
         if (!formNode) return
 
         formNode.focus()
-
         formNode.addEventListener("keydown", handleFormKeyDown)
         document.addEventListener("keydown", handleDocumentEvent)
         document.addEventListener("click", handleDocumentEvent)
@@ -87,21 +82,20 @@ function RenameView({ id, preName, setEditing, type }: RenameViewProps) {
     }, [handleDocumentEvent, handleFormKeyDown, setEditing])
 
     return (
-        <div className="rounded-md">
-            <form
-                onSubmit={handleSubmit}
-                ref={formRef}
-                className="flex w-full items-center gap-2 rounded-md"
-            >
-                <input
-                    type="text"
-                    className="w-full flex-grow rounded-sm bg-dark px-2 text-base text-white outline-none"
-                    autoFocus
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
-            </form>
-        </div>
+        <form
+            onSubmit={handleSubmit}
+            ref={formRef}
+            className="flex w-full items-center"
+        >
+            <input
+                type="text"
+                className="w-full rounded bg-dark border border-primary px-1.5 py-0.5 text-xs font-mono text-white outline-none shadow-xs"
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+            />
+        </form>
     )
 }
 

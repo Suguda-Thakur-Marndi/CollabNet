@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react"
-import { PiCaretDownBold } from "react-icons/pi"
+import { LuChevronDown } from "react-icons/lu"
 
 interface SelectProps {
     onChange: (e: ChangeEvent<HTMLSelectElement>) => void
@@ -11,33 +11,38 @@ interface SelectProps {
 function Select({ onChange, value, options, title }: SelectProps) {
     return (
         <div className="relative w-full">
-            <label className="mb-2 block text-sm font-medium text-slate-300" htmlFor={title}>
+            <label
+                className="mb-1.5 block text-xs font-medium text-slate-400"
+                htmlFor={title}
+            >
                 {title}
             </label>
-            <select
-                id={title}
-                className="w-full rounded-md border border-border bg-darkHover px-4 py-2.5 pr-10 text-white transition-all duration-200 outline-none hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={value}
-                onChange={onChange}
-                aria-label={title}
-            >
-                {options.sort().map((option) => {
-                    const value = option
-                    const name =
-                        option.charAt(0).toUpperCase() + option.slice(1)
+            <div className="relative">
+                <select
+                    id={title}
+                    className="input-field py-1.5 px-2.5 pr-8 text-xs font-mono"
+                    value={value}
+                    onChange={onChange}
+                    aria-label={title}
+                >
+                    {options.sort().map((option) => {
+                        const val = option
+                        const name =
+                            option.charAt(0).toUpperCase() + option.slice(1)
 
-                    return (
-                        <option key={name} value={value}>
-                            {name}
-                        </option>
-                    )
-                })}
-            </select>
-            <PiCaretDownBold
-                size={16}
-                className="pointer-events-none absolute bottom-3.5 right-3 text-slate-400"
-                aria-hidden="true"
-            />
+                        return (
+                            <option key={name} value={val}>
+                                {name}
+                            </option>
+                        )
+                    })}
+                </select>
+                <LuChevronDown
+                    size={14}
+                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                    aria-hidden="true"
+                />
+            </div>
         </div>
     )
 }

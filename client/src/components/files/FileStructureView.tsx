@@ -10,23 +10,38 @@ import { getIconClassName } from "@/utils/getIconClassName"
 import { Icon } from "@iconify/react"
 import cn from "classnames"
 import { MouseEvent, useEffect, useRef, useState } from "react"
-import { AiOutlineFolder, AiOutlineFolderOpen } from "react-icons/ai"
-import { MdDelete } from "react-icons/md"
-import { PiPencilSimpleFill } from "react-icons/pi"
 import {
-    RiFileAddLine,
-    RiFolderAddLine,
-    RiFolderUploadLine,
-} from "react-icons/ri"
+    LuChevronDown,
+    LuChevronRight,
+    LuChevronsDownUp,
+    LuFilePlus,
+    LuFolder,
+    LuFolderOpen,
+    LuFolderPlus,
+    LuPencil,
+    LuTrash2,
+} from "react-icons/lu"
 import RenameView from "./RenameView"
-import useResponsive from "@/hooks/useResponsive"
+import { CreateItemModal, DeleteConfirmModal } from "./FileModals"
 
 function FileStructureView() {
     const { fileStructure, createFile, createDirectory, collapseDirectories } =
         useFileSystem()
     const explorerRef = useRef<HTMLDivElement | null>(null)
     const [selectedDirId, setSelectedDirId] = useState<Id | null>(null)
-    const { minHeightReached } = useResponsive()
+
+    // Modals state
+    const [createModalState, setCreateModalState] = useState<{
+        isOpen: boolean
+        type: "file" | "directory"
+    }>({ isOpen: false, type: "file" })
+
+    const [deleteModalState, setDeleteModalState] = useState<{
+        isOpen: boolean
+        id: Id
+        name: string
+        type: "file" | "directory"
+    }>({ isOpen: false, id: "", name: "", type: "file" })
 
     const handleClickOutside = (e: MouseEvent) => {
         if (
@@ -37,71 +52,120 @@ function FileStructureView() {
         }
     }
 
-    const handleCreateFile = () => {
-        const fileName = prompt("Enter file name")
-        if (fileName) {
-            const parentDirId: Id = selectedDirId || fileStructure.id
-            createFile(parentDirId, fileName)
+    const openCreateModal = (type: "file" | "directory") => {
+        setCreateModalState({ isOpen: true, type })
+    }
+
+    const handleCreateItem = (name: string) => {
+        const parentDirId: Id = selectedDirId || fileStructure.id
+        if (createModalState.type === "file") {
+            createFile(parentDirId, name)
+        } else {
+            createDirectory(parentDirId, name)
         }
     }
 
-    const handleCreateDirectory = () => {
-        const dirName = prompt("Enter directory name")
-        if (dirName) {
-            const parentDirId: Id = selectedDirId || fileStructure.id
-            createDirectory(parentDirId, dirName)
+    const openDeleteModal = (id: Id, name: string, type: "file" | "directory") => {
+        setDeleteModalState({ isOpen: true, id, name, type })
+    }
+
+    const { deleteFile, deleteDirectory } = useFileSystem()
+    const handleConfirmDelete = () => {
+        if (deleteModalState.type === "file") {
+            deleteFile(deleteModalState.id)
+        } else {
+            deleteDirectory(deleteModalState.id)
         }
     }
 
     const sortedFileStructure = sortFileSystemItem(fileStructure)
+    const hasFiles = sortedFileStructure.children && sortedFileStructure.children.length > 0
 
     return (
-        <div onClick={handleClickOutside} className="flex flex-grow flex-col">
-            <div className="view-title flex justify-between">
-                <h2>Files</h2>
-                <div className="flex gap-2">
+        <div
+            onClick={handleClickOutside}
+            className="flex flex-1 flex-col overflow-hidden select-none"
+        >
+            {/* Header / Actions toolbar */}
+            <div className="flex h-8 shrink-0 items-center justify-between border-b border-border/80 px-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted font-mono">
+                    Explorer
+                </span>
+                <div className="flex items-center gap-0.5">
                     <button
-                        className="rounded-md px-1 hover:bg-darkHover"
-                        onClick={handleCreateFile}
-                        title="Create File"
+                        type="button"
+                        className="btn-ghost p-1 text-muted hover:text-white"
+                        onClick={() => openCreateModal("file")}
+                        title="New File"
+                        aria-label="Create file"
                     >
-                        <RiFileAddLine size={20} />
+                        <LuFilePlus size={15} />
                     </button>
                     <button
-                        className="rounded-md px-1 hover:bg-darkHover"
-                        onClick={handleCreateDirectory}
-                        title="Create Directory"
+                        type="button"
+                        className="btn-ghost p-1 text-muted hover:text-white"
+                        onClick={() => openCreateModal("directory")}
+                        title="New Folder"
+                        aria-label="Create directory"
                     >
-                        <RiFolderAddLine size={20} />
+                        <LuFolderPlus size={15} />
                     </button>
                     <button
-                        className="rounded-md px-1 hover:bg-darkHover"
+                        type="button"
+                        className="btn-ghost p-1 text-muted hover:text-white"
                         onClick={collapseDirectories}
-                        title="Collapse All Directories"
+                        title="Collapse All"
+                        aria-label="Collapse all directories"
                     >
-                        <RiFolderUploadLine size={20} />
+                        <LuChevronsDownUp size={15} />
                     </button>
                 </div>
             </div>
+
+            {/* Tree Area */}
             <div
-                className={cn(
-                    "min-h-[200px] flex-grow overflow-auto pr-2 sm:min-h-0",
-                    {
-                        "h-[calc(80vh-170px)]": !minHeightReached,
-                        "h-[85vh]": minHeightReached,
-                    },
-                )}
+                className="flex-1 overflow-y-auto overflow-x-hidden p-1.5 font-mono text-xs"
                 ref={explorerRef}
             >
-                {sortedFileStructure.children &&
-                    sortedFileStructure.children.map((item) => (
+                {hasFiles ? (
+                    sortedFileStructure.children!.map((item) => (
                         <Directory
                             key={item.id}
                             item={item}
                             setSelectedDirId={setSelectedDirId}
+                            openDeleteModal={openDeleteModal}
                         />
-                    ))}
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center p-6 text-center text-muted">
+                        <LuFolderPlus size={28} className="text-slate-600 mb-2" />
+                        <p className="text-xs">No files in project</p>
+                        <button
+                            type="button"
+                            onClick={() => openCreateModal("file")}
+                            className="mt-3 text-xs text-primary hover:underline"
+                        >
+                            + Create first file
+                        </button>
+                    </div>
+                )}
             </div>
+
+            {/* Modals */}
+            <CreateItemModal
+                isOpen={createModalState.isOpen}
+                onClose={() => setCreateModalState((prev) => ({ ...prev, isOpen: false }))}
+                type={createModalState.type}
+                onCreate={handleCreateItem}
+            />
+
+            <DeleteConfirmModal
+                isOpen={deleteModalState.isOpen}
+                onClose={() => setDeleteModalState((prev) => ({ ...prev, isOpen: false }))}
+                itemName={deleteModalState.name}
+                itemType={deleteModalState.type}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     )
 }
@@ -109,16 +173,18 @@ function FileStructureView() {
 function Directory({
     item,
     setSelectedDirId,
+    openDeleteModal,
 }: {
     item: FileSystemItem
     setSelectedDirId: (id: Id) => void
+    openDeleteModal: (id: Id, name: string, type: "file" | "directory") => void
 }) {
     const [isEditing, setEditing] = useState<boolean>(false)
     const dirRef = useRef<HTMLDivElement | null>(null)
     const { coords, menuOpen, setMenuOpen } = useContextMenu({
         ref: dirRef,
     })
-    const { deleteDirectory, toggleDirectory } = useFileSystem()
+    const { toggleDirectory } = useFileSystem()
 
     const handleDirClick = (dirId: string) => {
         setSelectedDirId(dirId)
@@ -131,54 +197,60 @@ function Directory({
         setEditing(true)
     }
 
-    const handleDeleteDirectory = (e: MouseEvent, id: Id) => {
+    const handleDeleteDirectory = (e: MouseEvent) => {
         e.stopPropagation()
         setMenuOpen(false)
-        const isConfirmed = confirm(
-            `Are you sure you want to delete directory?`,
-        )
-        if (isConfirmed) {
-            deleteDirectory(id)
-        }
+        openDeleteModal(item.id, item.name, "directory")
     }
 
     useEffect(() => {
         const dirNode = dirRef.current
-
         if (!dirNode) return
 
         dirNode.tabIndex = 0
-
-        const handleF2 = (e: KeyboardEvent) => {
-            e.stopPropagation()
+        const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "F2") {
+                e.stopPropagation()
                 setEditing(true)
+            } else if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                handleDirClick(item.id)
             }
         }
 
-        dirNode.addEventListener("keydown", handleF2)
-
-        return () => {
-            dirNode.removeEventListener("keydown", handleF2)
-        }
-    }, [])
+        dirNode.addEventListener("keydown", handleKeyDown)
+        return () => dirNode.removeEventListener("keydown", handleKeyDown)
+    }, [item.id])
 
     if (item.type === "file") {
-        return <File item={item} setSelectedDirId={setSelectedDirId} />
+        return (
+            <File
+                item={item}
+                setSelectedDirId={setSelectedDirId}
+                openDeleteModal={openDeleteModal}
+            />
+        )
     }
 
     return (
-        <div className="overflow-x-auto">
+        <div className="w-full">
             <div
-                className="flex w-full items-center rounded-md px-2 py-1 hover:bg-darkHover"
+                className="group flex w-full cursor-pointer items-center rounded px-1.5 py-1 text-slate-300 hover:bg-darkHover hover:text-white transition-colors"
                 onClick={() => handleDirClick(item.id)}
                 ref={dirRef}
             >
+                {/* Chevron */}
+                <span className="mr-1 text-slate-500">
+                    {item.isOpen ? <LuChevronDown size={14} /> : <LuChevronRight size={14} />}
+                </span>
+
+                {/* Folder icon */}
                 {item.isOpen ? (
-                    <AiOutlineFolderOpen size={24} className="mr-2 min-w-fit" />
+                    <LuFolderOpen size={15} className="mr-1.5 shrink-0 text-amber-400" />
                 ) : (
-                    <AiOutlineFolder size={24} className="mr-2 min-w-fit" />
+                    <LuFolder size={15} className="mr-1.5 shrink-0 text-amber-400/80" />
                 )}
+
                 {isEditing ? (
                     <RenameView
                         id={item.id}
@@ -187,52 +259,55 @@ function Directory({
                         setEditing={setEditing}
                     />
                 ) : (
-                    <p
-                        className="flex-grow cursor-pointer overflow-hidden truncate"
+                    <span
+                        className="flex-grow truncate text-xs font-medium"
                         title={item.name}
                     >
                         {item.name}
-                    </p>
+                    </span>
                 )}
             </div>
+
+            {/* Nested children */}
             <div
                 className={cn(
-                    { hidden: !item.isOpen },
-                    { block: item.isOpen },
-                    { "pl-4": item.name !== "root" },
+                    "border-l border-border/40 ml-3 pl-1.5",
+                    { hidden: !item.isOpen, block: item.isOpen }
                 )}
             >
                 {item.children &&
-                    item.children.map((item) => (
+                    item.children.map((child) => (
                         <Directory
-                            key={item.id}
-                            item={item}
+                            key={child.id}
+                            item={child}
                             setSelectedDirId={setSelectedDirId}
+                            openDeleteModal={openDeleteModal}
                         />
                     ))}
             </div>
 
             {menuOpen && (
-                <DirectoryMenu
-                    handleDeleteDirectory={handleDeleteDirectory}
-                    handleRenameDirectory={handleRenameDirectory}
-                    id={item.id}
-                    left={coords.x}
+                <ContextMenu
                     top={coords.y}
+                    left={coords.x}
+                    onRename={handleRenameDirectory}
+                    onDelete={handleDeleteDirectory}
                 />
             )}
         </div>
     )
 }
 
-const File = ({
+function File({
     item,
     setSelectedDirId,
+    openDeleteModal,
 }: {
     item: FileSystemItem
     setSelectedDirId: (id: Id) => void
-}) => {
-    const { deleteFile, openFile } = useFileSystem()
+    openDeleteModal: (id: Id, name: string, type: "file" | "directory") => void
+}) {
+    const { openFile, activeFile } = useFileSystem()
     const [isEditing, setEditing] = useState<boolean>(false)
     const { setIsSidebarOpen } = useViews()
     const { isMobile } = useWindowDimensions()
@@ -242,10 +317,11 @@ const File = ({
         ref: fileRef,
     })
 
+    const isActive = activeFile?.id === item.id
+
     const handleFileClick = (fileId: string) => {
         if (isEditing) return
         setSelectedDirId(fileId)
-
         openFile(fileId)
         if (isMobile) {
             setIsSidebarOpen(false)
@@ -261,149 +337,118 @@ const File = ({
         setMenuOpen(false)
     }
 
-    const handleDeleteFile = (e: MouseEvent, id: Id) => {
+    const handleDeleteFile = (e: MouseEvent) => {
         e.stopPropagation()
         setMenuOpen(false)
-        const isConfirmed = confirm(`Are you sure you want to delete file?`)
-        if (isConfirmed) {
-            deleteFile(id)
-        }
+        openDeleteModal(item.id, item.name, "file")
     }
 
     useEffect(() => {
         const fileNode = fileRef.current
-
         if (!fileNode) return
 
         fileNode.tabIndex = 0
-
-        const handleF2 = (e: KeyboardEvent) => {
-            e.stopPropagation()
+        const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "F2") {
+                e.stopPropagation()
                 setEditing(true)
+            } else if (e.key === "Enter") {
+                handleFileClick(item.id)
             }
         }
 
-        fileNode.addEventListener("keydown", handleF2)
-
-        return () => {
-            fileNode.removeEventListener("keydown", handleF2)
-        }
-    }, [])
+        fileNode.addEventListener("keydown", handleKeyDown)
+        return () => fileNode.removeEventListener("keydown", handleKeyDown)
+    }, [item.id])
 
     return (
-        <div
-            className="flex w-full items-center rounded-md px-2 py-1 hover:bg-darkHover"
-            onClick={() => handleFileClick(item.id)}
-            ref={fileRef}
-        >
-            <Icon
-                icon={getIconClassName(item.name)}
-                fontSize={22}
-                className="mr-2 min-w-fit"
-            />
-            {isEditing ? (
-                <RenameView
-                    id={item.id}
-                    preName={item.name}
-                    type="file"
-                    setEditing={setEditing}
+        <div className="w-full">
+            <div
+                className={cn(
+                    "group flex w-full cursor-pointer items-center rounded px-1.5 py-1 transition-colors",
+                    {
+                        "bg-darkHover text-white font-medium ring-1 ring-primary/40": isActive,
+                        "text-slate-300 hover:bg-darkHover/60 hover:text-white": !isActive,
+                    }
+                )}
+                onClick={() => handleFileClick(item.id)}
+                ref={fileRef}
+            >
+                <span className="mr-1 w-3" />
+                <Icon
+                    icon={getIconClassName(item.name)}
+                    fontSize={16}
+                    className="mr-1.5 shrink-0"
                 />
-            ) : (
-                <p
-                    className="flex-grow cursor-pointer overflow-hidden truncate"
-                    title={item.name}
-                >
-                    {item.name}
-                </p>
-            )}
+
+                {isEditing ? (
+                    <RenameView
+                        id={item.id}
+                        preName={item.name}
+                        type="file"
+                        setEditing={setEditing}
+                    />
+                ) : (
+                    <span
+                        className="flex-grow truncate text-xs"
+                        title={item.name}
+                    >
+                        {item.name}
+                    </span>
+                )}
+            </div>
 
             {menuOpen && (
-                <FileMenu
+                <ContextMenu
                     top={coords.y}
                     left={coords.x}
-                    id={item.id}
-                    handleRenameFile={handleRenameFile}
-                    handleDeleteFile={handleDeleteFile}
+                    onRename={handleRenameFile}
+                    onDelete={handleDeleteFile}
                 />
             )}
         </div>
     )
 }
 
-const FileMenu = ({
+function ContextMenu({
     top,
     left,
-    id,
-    handleRenameFile,
-    handleDeleteFile,
+    onRename,
+    onDelete,
 }: {
     top: number
     left: number
-    id: Id
-    handleRenameFile: (e: MouseEvent) => void
-    handleDeleteFile: (e: MouseEvent, id: Id) => void
-}) => {
-    return (
-        <div
-            className="absolute z-10 w-[150px] rounded-md border border-darkHover bg-dark p-1"
-            style={{
-                top,
-                left,
-            }}
-        >
-            <button
-                onClick={handleRenameFile}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-darkHover"
-            >
-                <PiPencilSimpleFill size={18} />
-                Rename
-            </button>
-            <button
-                onClick={(e) => handleDeleteFile(e, id)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-danger hover:bg-darkHover"
-            >
-                <MdDelete size={20} />
-                Delete
-            </button>
-        </div>
-    )
-}
+    onRename: (e: MouseEvent) => void
+    onDelete: (e: MouseEvent) => void
+}) {
+    // Clamping to avoid rendering offscreen
+    const adjustedTop = Math.min(top, window.innerHeight - 90)
+    const adjustedLeft = Math.min(left, window.innerWidth - 170)
 
-const DirectoryMenu = ({
-    top,
-    left,
-    id,
-    handleRenameDirectory,
-    handleDeleteDirectory,
-}: {
-    top: number
-    left: number
-    id: Id
-    handleRenameDirectory: (e: MouseEvent) => void
-    handleDeleteDirectory: (e: MouseEvent, id: Id) => void
-}) => {
     return (
         <div
-            className="absolute z-10 w-[150px] rounded-md border border-darkHover bg-dark p-1"
+            className="context-menu"
             style={{
-                top,
-                left,
+                top: `${adjustedTop}px`,
+                left: `${adjustedLeft}px`,
             }}
+            onClick={(e) => e.stopPropagation()}
         >
             <button
-                onClick={handleRenameDirectory}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-darkHover"
+                type="button"
+                onClick={onRename}
+                className="context-menu-item"
             >
-                <PiPencilSimpleFill size={18} />
-                Rename
+                <LuPencil size={13} className="text-muted" />
+                <span>Rename (F2)</span>
             </button>
             <button
-                onClick={(e) => handleDeleteDirectory(e, id)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-danger hover:bg-darkHover"
+                type="button"
+                onClick={onDelete}
+                className="context-menu-item danger"
             >
-                <MdDelete size={20} />
-                Delete
+                <LuTrash2 size={13} />
+                <span>Delete</span>
             </button>
         </div>
     )

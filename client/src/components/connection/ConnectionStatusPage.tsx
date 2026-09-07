@@ -1,16 +1,8 @@
 import { useNavigate } from "react-router-dom"
-import { LuRefreshCw, LuWifiOff } from "react-icons/lu"
+import { LuRefreshCw, LuWifiOff, LuArrowLeft } from "react-icons/lu"
 import { useState } from "react"
 
 function ConnectionStatusPage() {
-    return (
-        <div className="home-gradient flex min-h-screen flex-col items-center justify-center gap-8 px-6 py-12 text-center">
-            <ConnectionError />
-        </div>
-    )
-}
-
-const ConnectionError = () => {
     const navigate = useNavigate()
     const [isRetrying, setIsRetrying] = useState(false)
 
@@ -22,51 +14,56 @@ const ConnectionError = () => {
     }
 
     return (
-        <div className="flex max-w-md flex-col items-center gap-6 rounded-2xl border border-border bg-surface p-8 shadow-xl animate-fadeIn">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 text-red-500 animate-pulse">
-                <LuWifiOff size={32} />
+        <div className="home-gradient flex min-h-screen flex-col items-center justify-center p-4 select-none">
+            <div className="flex w-full max-w-md flex-col items-center gap-6 rounded-xl border border-border bg-surface p-6 shadow-2xl text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 ring-1 ring-red-500/20">
+                    <LuWifiOff size={28} />
+                </div>
+
+                <div className="space-y-1.5">
+                    <h1 className="text-lg font-bold text-white tracking-tight">
+                        Connection Disconnected
+                    </h1>
+                    <p className="text-xs text-muted leading-relaxed">
+                        Unable to connect to the CollabNet collaboration server. Verify that the backend server is active on port 3000.
+                    </p>
+                </div>
+
+                <div className="flex w-full flex-col gap-2 pt-2">
+                    <button
+                        type="button"
+                        className={`btn-primary flex items-center justify-center gap-2 py-2 text-xs ${
+                            isRetrying ? "loading" : ""
+                        }`}
+                        onClick={handleRetry}
+                        disabled={isRetrying}
+                        aria-busy={isRetrying}
+                    >
+                        {isRetrying ? (
+                            <span>Reconnecting...</span>
+                        ) : (
+                            <>
+                                <LuRefreshCw size={14} />
+                                <span>Retry Connection</span>
+                            </>
+                        )}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn-secondary flex items-center justify-center gap-2 py-2 text-xs"
+                        onClick={() => navigate("/")}
+                    >
+                        <LuArrowLeft size={14} />
+                        <span>Return to Workspace Dashboard</span>
+                    </button>
+                </div>
+
+                <div className="rounded bg-darkHover/60 px-3 py-2 text-[11px] font-mono text-slate-400 border border-border/60 w-full text-left">
+                    <p className="text-slate-500 text-[10px] uppercase font-semibold">Diagnostics</p>
+                    <p className="mt-0.5">Socket Target: <span className="text-slate-300">localhost:3000</span></p>
+                    <p>Transport: <span className="text-slate-300">WebSocket / Polling fallback</span></p>
+                </div>
             </div>
-            <div className="space-y-3">
-                <h1 className="text-2xl font-bold text-white">
-                    Connection failed
-                </h1>
-                <p className="text-sm text-slate-400 leading-relaxed">
-                    Could not reach the collaboration server. Make sure the
-                    backend is running on port 3000, then try again.
-                </p>
-            </div>
-            <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center pt-2">
-                <button
-                    type="button"
-                    className={`btn-primary flex items-center justify-center gap-2 py-2.5 transition-all ${isRetrying ? "loading" : ""}`}
-                    onClick={handleRetry}
-                    disabled={isRetrying}
-                    aria-busy={isRetrying}
-                >
-                    {isRetrying ? (
-                        <>
-                            <div className="spinner-small" />
-                            Reconnecting…
-                        </>
-                    ) : (
-                        <>
-                            <LuRefreshCw size={18} />
-                            Try again
-                        </>
-                    )}
-                </button>
-                <button
-                    type="button"
-                    className="btn-secondary py-2.5"
-                    onClick={() => navigate("/")}
-                >
-                    Back to home
-                </button>
-            </div>
-            <p className="text-xs text-slate-500 pt-2">
-                Still having issues? Check that your server is accessible at{" "}
-                <code className="text-slate-400">localhost:3000</code>
-            </p>
         </div>
     )
 }

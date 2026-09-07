@@ -1,37 +1,51 @@
 import { useFileSystem } from "@/context/FileContext"
-import useResponsive from "@/hooks/useResponsive"
-import cn from "classnames"
 import Editor from "./Editor"
 import FileTab from "./FileTab"
+import Breadcrumbs from "../common/Breadcrumbs"
 import { memo } from "react"
+import { LuCode, LuFilePlus } from "react-icons/lu"
 
 const EditorComponent = memo(function EditorComponent() {
-    const { openFiles } = useFileSystem()
-    const { minHeightReached } = useResponsive()
+    const { openFiles, fileStructure, createFile } = useFileSystem()
+
+    const handleCreateInitialFile = () => {
+        const name = `index.${fileStructure.children?.length ? "js" : "ts"}`
+        createFile(fileStructure.id, name)
+    }
 
     if (openFiles.length <= 0) {
         return (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-6 text-center">
-                <p className="text-lg font-medium text-slate-200">
-                    No file open
-                </p>
-                <p className="max-w-sm text-sm text-muted">
-                    Open a file from the sidebar, or create one to start coding
-                    with your team.
-                </p>
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center select-none bg-dark">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-elevated text-primary border border-border">
+                    <LuCode size={24} />
+                </div>
+                <div className="max-w-xs space-y-1">
+                    <p className="text-sm font-semibold text-slate-200">
+                        No File Open
+                    </p>
+                    <p className="text-xs text-muted leading-relaxed">
+                        Select a file from the explorer sidebar, or create a new file to collaborate in real time.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={handleCreateInitialFile}
+                    className="btn-secondary flex items-center gap-1.5 py-1.5 px-3 text-xs mt-1"
+                >
+                    <LuFilePlus size={14} className="text-primary" />
+                    <span>Create New File</span>
+                </button>
             </div>
         )
     }
 
     return (
-        <main
-            className={cn("flex w-full flex-col overflow-x-auto md:h-screen", {
-                "h-[calc(100vh-50px)]": !minHeightReached,
-                "h-full": minHeightReached,
-            })}
-        >
+        <main className="flex h-full w-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-dark">
             <FileTab />
-            <Editor />
+            <Breadcrumbs />
+            <div className="min-h-0 flex-1 overflow-hidden relative">
+                <Editor />
+            </div>
         </main>
     )
 })

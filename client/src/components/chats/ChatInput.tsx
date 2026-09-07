@@ -44,11 +44,11 @@ function ChatInput() {
     return (
         <form
             onSubmit={handleSendMessage}
-            className="flex items-center gap-2 rounded-md border border-border bg-surface-elevated transition-all duration-200 focus-within:border-primary focus-within:shadow-lg"
+            className="flex items-center gap-1.5 rounded-md border border-border bg-surface-elevated p-1 transition-all duration-150 focus-within:border-primary/80 focus-within:ring-1 focus-within:ring-primary/40"
         >
             <input
                 type="text"
-                className="w-full grow border-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder-slate-500 transition-colors"
+                className="w-full grow border-none bg-transparent px-2.5 py-1.5 text-xs text-white outline-none placeholder-slate-500"
                 placeholder="Type a message..."
                 ref={inputRef}
                 disabled={isSending}
@@ -56,16 +56,16 @@ function ChatInput() {
                 aria-label="Chat message input"
             />
             <button
-                className={`btn-primary m-1 flex shrink-0 items-center justify-center gap-2 rounded px-3 py-2 transition-all duration-200 ${isSending ? "opacity-75" : ""}`}
+                className="btn-primary shrink-0 p-2 py-1.5 text-xs rounded transition-all"
                 type="submit"
                 disabled={isSending}
                 aria-label={isSending ? "Sending message" : "Send message"}
-                title={isSending ? "Sending..." : "Send message (Ctrl+Enter)"}
+                title="Send (Enter)"
             >
                 {isSending ? (
                     <div className="spinner-small" />
                 ) : (
-                    <LuSendHorizontal size={18} />
+                    <LuSendHorizontal size={14} />
                 )}
             </button>
         </form>

@@ -4,12 +4,12 @@ import { useViews } from "@/context/ViewContext"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { USER_STATUS } from "@/types/user"
 import toast from "react-hot-toast"
-import { LuCopy, LuUsers, LuVideo } from "react-icons/lu"
+import { LuCopy, LuUsers, LuVideo, LuMenu } from "react-icons/lu"
 
 function EditorTopBar() {
     const { currentUser, users, status, callPanelOpen, toggleCallPanel } =
         useAppContext()
-    const { setIsSidebarOpen } = useViews()
+    const { setIsSidebarOpen, isSidebarOpen } = useViews()
     const { isMobile } = useWindowDimensions()
     const { socket } = useSocket()
 
@@ -31,61 +31,73 @@ function EditorTopBar() {
 
     const connected = status === USER_STATUS.JOINED && socket.connected
     const statusLabel = connected ? "Connected" : "Disconnected"
-    const statusColor = connected ? "bg-green-500 ring-green-500/30" : "bg-red-500 ring-red-500/30"
 
     return (
-        <header className="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface px-3 md:px-4 transition-colors duration-200">
-            <div className="flex min-w-0 items-center gap-2">
-                <span
-                    className={`h-2.5 w-2.5 shrink-0 rounded-full ring-2 animation-pulse ${statusColor}`}
-                    title={statusLabel}
-                    aria-label={statusLabel}
-                    role="status"
-                />
-                <span className="truncate text-sm font-medium text-slate-200">
-                    Room:{" "}
-                    <span className="font-mono text-primary">
-                        {currentUser.roomId || "—"}
+        <header className="flex h-10 shrink-0 select-none items-center justify-between border-b border-border bg-surface px-3">
+            {/* Left side: Mobile menu toggle + Brand & Room ID */}
+            <div className="flex min-w-0 items-center gap-2.5">
+                {isMobile && (
+                    <button
+                        type="button"
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="btn-ghost p-1 text-muted hover:text-white"
+                        aria-label="Toggle sidebar menu"
+                    >
+                        <LuMenu size={18} />
+                    </button>
+                )}
+
+                <div className="flex items-center gap-1.5 rounded-md border border-border/70 bg-surface-elevated/60 px-2 py-1">
+                    <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${
+                            connected
+                                ? "bg-emerald-500 ring-2 ring-emerald-500/30"
+                                : "bg-red-500 ring-2 ring-red-500/30"
+                        }`}
+                        title={statusLabel}
+                        role="status"
+                    />
+                    <span className="text-[11px] font-medium text-slate-300">
+                        Room:{" "}
+                        <span className="font-mono text-primary font-semibold">
+                            {currentUser.roomId || "—"}
+                        </span>
                     </span>
-                </span>
-                <button
-                    type="button"
-                    onClick={copyRoomLink}
-                    className="btn-ghost shrink-0 p-1.5 hover:text-primary"
-                    title="Copy room link"
-                    aria-label="Copy room link to clipboard"
-                >
-                    <LuCopy size={16} />
-                </button>
+                    <button
+                        type="button"
+                        onClick={copyRoomLink}
+                        className="btn-ghost p-0.5 text-muted hover:text-primary transition-colors"
+                        title="Copy room link"
+                        aria-label="Copy room link"
+                    >
+                        <LuCopy size={12} />
+                    </button>
+                </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted">
+
+            {/* Right side: Video call button + Collaborators pill */}
+            <div className="flex items-center gap-2">
                 <button
                     type="button"
                     onClick={handleCallToggle}
-                    className={`btn-ghost flex shrink-0 items-center gap-1.5 p-1.5 transition-colors ${
-                        callPanelOpen ? "text-primary" : ""
-                    }`}
-                    title={
+                    className={`btn-ghost flex items-center gap-1.5 px-2.5 py-1 text-xs rounded transition-all ${
                         callPanelOpen
-                            ? "Hide video & voice"
-                            : "Open video & voice"
-                    }
-                    aria-label={callPanelOpen ? "Close video call panel" : "Open video call panel"}
+                            ? "bg-primary/20 text-primary border border-primary/40"
+                            : "hover:bg-darkHover text-slate-300"
+                    }`}
+                    title={callPanelOpen ? "Close video call" : "Open video call"}
                     aria-pressed={callPanelOpen}
                 >
-                    <LuVideo size={18} />
+                    <LuVideo size={15} />
                     <span className="hidden sm:inline">Call</span>
                 </button>
-                <div className="flex items-center gap-1.5 text-slate-300">
-                    <LuUsers size={16} className="shrink-0" />
-                    <span aria-label={`${users.length} user${users.length !== 1 ? 's' : ''} connected`}>
-                        {users.length} {users.length === 1 ? "user" : "users"}
+
+                <div className="flex items-center gap-1.5 rounded-md border border-border/70 bg-surface-elevated/40 px-2 py-1 text-xs text-slate-300">
+                    <LuUsers size={13} className="text-slate-400 shrink-0" />
+                    <span className="font-mono text-[11px]">
+                        {users.length} {users.length === 1 ? "peer" : "peers"}
                     </span>
                 </div>
-                <span className="hidden text-slate-500 md:inline">·</span>
-                <span className="hidden max-w-[120px] truncate text-slate-400 md:inline" title={currentUser.username}>
-                    {currentUser.username}
-                </span>
             </div>
         </header>
     )

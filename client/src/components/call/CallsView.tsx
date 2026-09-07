@@ -1,7 +1,7 @@
 import { WebcamStream } from "@/components/webcam-stream"
 import useResponsive from "@/hooks/useResponsive"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { LuX } from "react-icons/lu"
+import { LuVideo, LuX } from "react-icons/lu"
 
 interface CallsViewProps {
     onClose?: () => void
@@ -13,32 +13,32 @@ function CallsView({ onClose }: CallsViewProps) {
 
     return (
         <div
-            className="flex h-full min-h-0 flex-col gap-3 p-4"
+            className="flex h-full min-h-0 flex-col gap-2.5 p-3 select-none"
             style={isMobile ? { height: viewHeight } : undefined}
         >
-            <div className="flex shrink-0 items-start justify-between gap-2">
-                <div className="min-w-0">
-                    <h1 className="view-title mb-0 border-0 pb-0">
-                        Video & Voice
-                    </h1>
-                    <p className="mt-2 text-xs leading-relaxed text-muted">
-                        Start your camera or microphone to connect with others
-                        in this room.
-                    </p>
+            {/* Header */}
+            <div className="flex shrink-0 items-center justify-between border-b border-border/80 pb-2">
+                <div className="flex items-center gap-2">
+                    <LuVideo size={16} className="text-primary" />
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted font-mono">
+                        Video & Voice Call
+                    </span>
                 </div>
                 {onClose && (
                     <button
                         type="button"
                         onClick={onClose}
-                        className="btn-ghost shrink-0 p-2 md:hidden"
-                        title="Close"
+                        className="btn-ghost p-1 text-muted hover:text-white"
+                        title="Close Call Panel"
                         aria-label="Close call panel"
                     >
-                        <LuX size={20} />
+                        <LuX size={16} />
                     </button>
                 )}
             </div>
-            <div className="call-panel__stream min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-dark">
+
+            {/* Video stream viewport */}
+            <div className="call-panel__stream min-h-0 flex-1 overflow-hidden rounded-md border border-border bg-[#070a0f]">
                 <WebcamStream />
             </div>
         </div>

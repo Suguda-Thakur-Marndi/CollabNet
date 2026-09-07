@@ -1,9 +1,9 @@
 import { useFileSystem } from "@/context/FileContext"
 import { getIconClassName } from "@/utils/getIconClassName"
 import { Icon } from "@iconify/react"
-import { IoClose } from "react-icons/io5"
+import { LuX } from "react-icons/lu"
 import cn from "classnames"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, MouseEvent } from "react"
 import { languageIdFromFileName } from "@/utils/codemirrorLanguage"
 import { useSettings } from "@/context/SettingContext"
 
@@ -19,14 +19,21 @@ function FileTab() {
     const { setLanguage } = useSettings()
 
     const changeActiveFile = (fileId: string) => {
-
         if (activeFile?.id === fileId) return
 
         updateFileContent(activeFile?.id || "", activeFile?.content || "")
 
-        const file = openFiles.find((file) => file.id === fileId)
+        const file = openFiles.find((f) => f.id === fileId)
         if (file) {
             setActiveFile(file)
+        }
+    }
+
+    const handleMouseDown = (e: MouseEvent, fileId: string) => {
+        // Middle click closes tab
+        if (e.button === 1) {
+            e.preventDefault()
+            closeFile(fileId)
         }
     }
 
@@ -35,21 +42,16 @@ function FileTab() {
         if (!fileTabNode) return
 
         const handleWheel = (e: WheelEvent) => {
-            // Prevent default scroll behavior to enable horizontal scrolling
             e.preventDefault()
             if (e.deltaY > 0) {
-                fileTabNode.scrollLeft += 100
+                fileTabNode.scrollLeft += 80
             } else {
-                fileTabNode.scrollLeft -= 100
+                fileTabNode.scrollLeft -= 80
             }
         }
 
-        // Non-passive listener required because preventDefault() is called
         fileTabNode.addEventListener("wheel", handleWheel, { passive: false })
-
-        return () => {
-            fileTabNode.removeEventListener("wheel", handleWheel)
-        }
+        return () => fileTabNode.removeEventListener("wheel", handleWheel)
     }, [])
 
     useEffect(() => {
@@ -59,50 +61,53 @@ function FileTab() {
 
     return (
         <div
-            className="flex h-[50px] w-full select-none gap-1.5 overflow-x-auto border-b border-border bg-surface p-2 pb-0"
+            className="flex h-9 w-full shrink-0 select-none items-stretch overflow-x-auto border-b border-border bg-[#0e1420]"
             ref={fileTabRef}
             role="tablist"
-            aria-label="Open files"
+            aria-label="Open editor tabs"
         >
-            {openFiles.map((file) => (
-                <span
-                    key={file.id}
-                    className={cn(
-                        "flex w-fit items-center gap-2 rounded-t-md px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-darkHover/50",
-                        { 
-                            "bg-darkHover text-primary border-b-2 border-primary": file.id === activeFile?.id,
-                            "text-slate-300 hover:text-slate-100": file.id !== activeFile?.id,
-                        }
-                    )}
-                    onClick={() => changeActiveFile(file.id)}
-                    role="tab"
-                    aria-selected={file.id === activeFile?.id}
-                    title={file.name}
-                >
-                    <Icon
-                        icon={getIconClassName(file.name)}
-                        fontSize={18}
-                        className="shrink-0"
-                    />
-                    <p
-                        className="flex-grow cursor-pointer overflow-hidden truncate"
+            {openFiles.map((file) => {
+                const isActive = file.id === activeFile?.id
+
+                return (
+                    <div
+                        key={file.id}
+                        className={cn(
+                            "group flex max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-border/80 px-3 py-1.5 text-xs font-mono transition-colors",
+                            {
+                                "bg-[#0b0f17] text-white font-medium border-t-2 border-t-primary": isActive,
+                                "bg-transparent text-muted hover:bg-surface-elevated hover:text-slate-200": !isActive,
+                            }
+                        )}
+                        onClick={() => changeActiveFile(file.id)}
+                        onMouseDown={(e) => handleMouseDown(e, file.id)}
+                        role="tab"
+                        aria-selected={isActive}
                         title={file.name}
                     >
-                        {file.name}
-                    </p>
-                    <button
-                        className="ml-1 shrink-0 rounded-md p-1 transition-colors hover:bg-slate-700/30 hover:text-slate-100"
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            closeFile(file.id)
-                        }}
-                        aria-label={`Close ${file.name}`}
-                        title={`Close ${file.name}`}
-                    >
-                        <IoClose size={16} />
-                    </button>
-                </span>
-            ))}
+                        <Icon
+                            icon={getIconClassName(file.name)}
+                            fontSize={15}
+                            className="shrink-0"
+                        />
+                        <span className="truncate font-medium flex-1">
+                            {file.name}
+                        </span>
+                        <button
+                            type="button"
+                            className="rounded p-0.5 text-muted opacity-60 hover:bg-darkHover hover:text-white hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                closeFile(file.id)
+                            }}
+                            aria-label={`Close ${file.name}`}
+                            title={`Close ${file.name}`}
+                        >
+                            <LuX size={13} />
+                        </button>
+                    </div>
+                )
+            })}
         </div>
     )
 }

@@ -4,12 +4,17 @@ import { SocketEvent } from "@/types/socket"
 import { USER_STATUS } from "@/types/user"
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
-import { LuCopy, LuSparkles, LuCheck } from "react-icons/lu"
+import { LuCopy, LuSparkles, LuCheck, LuArrowRight } from "react-icons/lu"
 import { useLocation, useNavigate } from "react-router-dom"
 import { v4 as uuidv4 } from "uuid"
-import logo from "@/assets/logo.png"
+import { saveRecentRoom } from "../dashboard/RecentRooms"
 
-const FormComponent = () => {
+interface FormComponentProps {
+    externalRoomId?: string
+    externalUsername?: string
+}
+
+const FormComponent = ({ externalRoomId, externalUsername }: FormComponentProps) => {
     const location = useLocation()
     const { currentUser, setCurrentUser, status, setStatus } = useAppContext()
     const { socket } = useSocket()
@@ -20,10 +25,24 @@ const FormComponent = () => {
     const navigate = useNavigate()
     const isJoining = status === USER_STATUS.ATTEMPTING_JOIN
 
+    // Sync external props if selected from recent rooms
+    useEffect(() => {
+        if (externalRoomId) {
+            setCurrentUser((prev) => ({
+                ...prev,
+                roomId: externalRoomId,
+                username: externalUsername || prev.username,
+            }))
+            if (!externalUsername && usernameRef.current) {
+                usernameRef.current.focus()
+            }
+        }
+    }, [externalRoomId, externalUsername, setCurrentUser])
+
     const createNewRoomId = () => {
-        const roomId = uuidv4()
+        const roomId = uuidv4().slice(0, 8)
         setCurrentUser({ ...currentUser, roomId })
-        toast.success("New room created — share the Room ID with your team")
+        toast.success("New room ID generated")
         usernameRef.current?.focus()
     }
 
@@ -39,8 +58,8 @@ const FormComponent = () => {
             if (value.trim().length === 0) {
                 return "Room ID is required"
             }
-            if (value.trim().length < 5) {
-                return "Room ID must be at least 5 characters"
+            if (value.trim().length < 4) {
+                return "Room ID must be at least 4 characters"
             }
         }
         return undefined
@@ -49,8 +68,7 @@ const FormComponent = () => {
     const handleInputChanges = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
         setCurrentUser((prev) => ({ ...prev, [name]: value }))
-        
-        // Validate as user types (if field was touched)
+
         if (touched[name as keyof typeof touched]) {
             const error = validateField(name, value)
             setErrors((prev) => ({
@@ -84,10 +102,10 @@ const FormComponent = () => {
 
     const validateForm = (): boolean => {
         const newErrors: { username?: string; roomId?: string } = {}
-        
+
         const roomIdError = validateField("roomId", currentUser.roomId)
         const usernameError = validateField("username", currentUser.username)
-        
+
         if (roomIdError) newErrors.roomId = roomIdError
         if (usernameError) newErrors.username = usernameError
 
@@ -104,7 +122,9 @@ const FormComponent = () => {
             toast.error("Please fix the errors above")
             return
         }
-        toast.loading("Joining room…")
+
+        saveRecentRoom(currentUser.roomId, currentUser.username)
+        toast.loading("Connecting to room...")
         setStatus(USER_STATUS.ATTEMPTING_JOIN)
         socket.emit(SocketEvent.JOIN_REQUEST, currentUser)
     }
@@ -117,7 +137,7 @@ const FormComponent = () => {
                 roomId: location.state.roomId,
             }))
             if (currentUser.username.length === 0) {
-                toast.success("Room ID filled in — enter your username")
+                toast.success("Room ID loaded — enter your username")
             }
         }
     }, [currentUser.username, location.state?.roomId, setCurrentUser])
@@ -134,6 +154,7 @@ const FormComponent = () => {
             const username = currentUser.username
             const roomId = currentUser.roomId
             if (username && roomId) {
+                saveRecentRoom(roomId, username)
                 sessionStorage.setItem("redirect", "true")
                 navigate(`/editor/${roomId}`, {
                     state: { username },
@@ -147,22 +168,25 @@ const FormComponent = () => {
         }
     }, [currentUser.username, currentUser.roomId, navigate, setStatus, socket, status])
 
-    const roomIdValidated = touched.roomId && !errors.roomId && currentUser.roomId.length >= 5
+    const roomIdValidated = touched.roomId && !errors.roomId && currentUser.roomId.length >= 4
     const usernameValidated = touched.username && !errors.username && currentUser.username.length >= 3
 
     return (
-        <div className="flex w-full max-w-[440px] flex-col gap-6 rounded-2xl border border-border bg-surface/80 p-6 shadow-xl backdrop-blur-sm sm:p-8">
-            <div className="text-center">
-                <img src={logo} alt="Collab Net" className="mx-auto w-full max-w-[280px]" />
-                <p className="mt-3 text-sm text-muted">
-                    Real-time collaborative coding — join a room and build together.
+        <div className="flex w-full flex-col gap-5 rounded-xl border border-border bg-surface p-6 shadow-2xl">
+            <div>
+                <h2 className="text-base font-semibold text-white tracking-tight">
+                    Join Collaborative Room
+                </h2>
+                <p className="mt-1 text-xs text-muted leading-relaxed">
+                    Enter a Room ID and handle to jump into real-time shared coding.
                 </p>
             </div>
 
             <form onSubmit={joinRoom} className="flex w-full flex-col gap-4" noValidate>
-                <div className="form-group">
-                    <label htmlFor="roomId" className="form-label">
-                        Room ID
+                {/* Room ID Field */}
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor="roomId" className="text-xs font-medium text-slate-300">
+                        Room Identifier
                     </label>
                     <div className="flex gap-2">
                         <div className="relative flex-1">
@@ -170,8 +194,8 @@ const FormComponent = () => {
                                 id="roomId"
                                 type="text"
                                 name="roomId"
-                                placeholder="e.g. my-team-room"
-                                className={`input-field flex-1 ${errors.roomId ? "error" : ""}`}
+                                placeholder="e.g. frontend-team, 8a7f2e1d"
+                                className={`input-field font-mono text-xs pr-8 ${errors.roomId ? "error" : ""}`}
                                 onChange={handleInputChanges}
                                 onBlur={() => handleFieldBlur("roomId")}
                                 value={currentUser.roomId}
@@ -180,40 +204,40 @@ const FormComponent = () => {
                                 aria-describedby={errors.roomId ? "roomId-error" : undefined}
                             />
                             {roomIdValidated && (
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                                    <LuCheck size={18} />
+                                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-400">
+                                    <LuCheck size={15} />
                                 </div>
                             )}
                         </div>
                         <button
                             type="button"
                             onClick={copyRoomId}
-                            className="btn-secondary shrink-0 px-3"
+                            className="btn-secondary shrink-0 px-2.5 py-1.5 text-xs"
                             title="Copy Room ID"
-                            aria-label="Copy Room ID to clipboard"
+                            aria-label="Copy Room ID"
                         >
-                            <LuCopy size={18} />
+                            <LuCopy size={15} />
                         </button>
                     </div>
                     {errors.roomId && (
-                        <div id="roomId-error" className="flex items-center gap-1.5 text-error text-sm">
-                            <span className="font-bold">•</span>
-                            <span>{errors.roomId}</span>
-                        </div>
+                        <p id="roomId-error" className="text-xs text-danger">
+                            {errors.roomId}
+                        </p>
                     )}
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="username" className="form-label">
-                        Username
+                {/* Username Field */}
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor="username" className="text-xs font-medium text-slate-300">
+                        Collaborator Handle
                     </label>
                     <div className="relative">
                         <input
                             id="username"
                             type="text"
                             name="username"
-                            placeholder="How others see you"
-                            className={`input-field ${errors.username ? "error" : ""}`}
+                            placeholder="e.g. alex_dev"
+                            className={`input-field text-xs pr-8 ${errors.username ? "error" : ""}`}
                             onChange={handleInputChanges}
                             onBlur={() => handleFieldBlur("username")}
                             value={currentUser.username}
@@ -223,44 +247,50 @@ const FormComponent = () => {
                             aria-describedby={errors.username ? "username-error" : undefined}
                         />
                         {usernameValidated && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                                <LuCheck size={18} />
+                            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-400">
+                                <LuCheck size={15} />
                             </div>
                         )}
                     </div>
                     {errors.username && (
-                        <div id="username-error" className="flex items-center gap-1.5 text-error text-sm">
-                            <span className="font-bold">•</span>
-                            <span>{errors.username}</span>
-                        </div>
+                        <p id="username-error" className="text-xs text-danger">
+                            {errors.username}
+                        </p>
                     )}
                 </div>
 
+                {/* Submit button */}
                 <button
                     type="submit"
-                    className={`btn-primary mt-1 w-full py-3 text-base ${isJoining ? "loading" : ""}`}
+                    className={`btn-primary mt-2 w-full py-2.5 text-xs flex items-center justify-center gap-2 ${
+                        isJoining ? "loading" : ""
+                    }`}
                     disabled={isJoining}
                     aria-busy={isJoining}
                 >
                     {isJoining ? (
-                        <span className="flex items-center justify-center gap-2">
-                            <div className="spinner-small" />
-                            Joining…
-                        </span>
+                        <span>Connecting to Room...</span>
                     ) : (
-                        "Join room"
+                        <>
+                            <span>Enter Workspace</span>
+                            <LuArrowRight size={14} />
+                        </>
                     )}
                 </button>
             </form>
 
+            <div className="relative flex items-center justify-center">
+                <hr className="w-full border-border" />
+                <span className="absolute bg-surface px-2 text-[10px] text-slate-500 uppercase">or</span>
+            </div>
+
             <button
                 type="button"
-                className="btn-secondary flex w-full items-center justify-center gap-2"
+                className="btn-secondary flex w-full items-center justify-center gap-2 py-2 text-xs"
                 onClick={createNewRoomId}
-                aria-label="Generate a new random room ID"
             >
-                <LuSparkles size={18} />
-                Generate new Room ID
+                <LuSparkles size={14} className="text-primary" />
+                <span>Generate Instant Room ID</span>
             </button>
         </div>
     )

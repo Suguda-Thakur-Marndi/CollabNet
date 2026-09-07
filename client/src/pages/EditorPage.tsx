@@ -1,18 +1,17 @@
 import SplitterComponent from "@/components/SplitterComponent"
-import { Suspense, lazy } from "react"
+import { Suspense, lazy, useEffect } from "react"
 import ConnectionStatusPage from "@/components/connection/ConnectionStatusPage"
-
-const Sidebar = lazy(() => import("@/components/sidebar/Sidebar"))
-const WorkSpace = lazy(() => import("@/components/workspace"))
-const CallPanel = lazy(() => import("@/components/call/CallPanel"))
 import { useAppContext } from "@/context/AppContext"
 import { useSocket } from "@/context/SocketContext"
 import useFullScreen from "@/hooks/useFullScreen"
 import useUserActivity from "@/hooks/useUserActivity"
 import { SocketEvent } from "@/types/socket"
 import { USER_STATUS, User } from "@/types/user"
-import { useEffect } from "react"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
+
+const Sidebar = lazy(() => import("@/components/sidebar/Sidebar"))
+const WorkSpace = lazy(() => import("@/components/workspace"))
+const CallPanel = lazy(() => import("@/components/call/CallPanel"))
 
 function EditorPage() {
     useUserActivity()
@@ -82,16 +81,28 @@ function EditorPage() {
 
     return (
         <SplitterComponent>
-            <Suspense fallback={<div className="w-[50px] h-full bg-dark border-r border-darkHover" />}> 
+            <Suspense
+                fallback={
+                    <div className="h-full w-[48px] shrink-0 border-r border-border bg-surface" />
+                }
+            >
                 <Sidebar />
             </Suspense>
+
             <div
-                className="editor-layout flex min-h-0 min-w-0 flex-1 flex-col md:flex-row"
+                className="editor-layout flex min-h-0 min-w-0 flex-1 flex-col md:flex-row overflow-hidden"
                 data-call-open={callPanelOpen ? "true" : "false"}
             >
-                <Suspense fallback={<div className="flex-1 bg-dark" />}> 
+                <Suspense
+                    fallback={
+                        <div className="flex flex-1 items-center justify-center bg-dark font-mono text-xs text-slate-500 animate-pulse">
+                            Loading workspace...
+                        </div>
+                    }
+                >
                     <WorkSpace />
                 </Suspense>
+
                 <Suspense fallback={null}>
                     <CallPanel />
                 </Suspense>
