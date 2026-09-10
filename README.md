@@ -1,14 +1,18 @@
 # CollabNet — Real-Time Collaborative Developer IDE
 
-> A full-stack real-time collaborative code editor and developer platform built for distributed engineering teams. Code together, manage files, execute programs in an interactive cloud terminal, chat, make WebRTC voice/video calls, and brainstorm on a shared infinite whiteboard — all inside a single browser tab.
+> A full-stack, real-time collaborative code editor and developer workspace built for distributed engineering teams. Code together with live multi-cursor presence, manage files, stream interactive cloud terminals, brainstorm on a shared infinite whiteboard, consult an integrated Google Gemini AI Copilot, execute code across 80+ languages, and make WebRTC audio/video calls — all inside a single browser tab.
 
 <div align="center">
 
-![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?logo=node.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-v20%2B-339933?logo=node.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
-![Socket.IO](https://img.shields.io/badge/Socket.IO-4.x-010101?logo=socket.io&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9%2B-3178C6?logo=typescript&logoColor=white)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-4.8%2B-010101?logo=socket.io&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash-4285F4?logo=google&logoColor=white)
+![Google OAuth](https://img.shields.io/badge/Auth-Google%20OAuth%202.0-4285F4?logo=google&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
 </div>
@@ -20,34 +24,36 @@
 1. [Overview & Value Proposition](#-overview--value-proposition)
 2. [Tech Stack & Dependency Map](#-tech-stack--dependency-map)
 3. [UI/UX Design System](#-uiux-design-system)
-4. [Architecture](#️-architecture)
+4. [System Architecture](#️-system-architecture)
 5. [Repository Structure](#-repository-structure)
 6. [Key Features](#-key-features)
 7. [Keyboard Shortcuts](#️-keyboard-shortcuts)
-8. [Getting Started](#-getting-started)
-9. [Docker / Production-Parity Setup](#-docker--production-parity-setup)
-10. [Socket.IO Event Reference](#-socketio-event-reference)
-11. [Production Build](#️-production-build)
-12. [AWS Production Architecture](#️-aws-production-architecture)
-13. [License](#-license)
+8. [Getting Started & Local Setup](#-getting-started--local-setup)
+9. [Environment Variables Reference](#-environment-variables-reference)
+10. [REST & SSE API Reference](#-rest--sse-api-reference)
+11. [Socket.IO Event Reference](#-socketio-event-reference)
+12. [Testing & CI/CD Pipeline](#-testing--cicd-pipeline)
+13. [Docker & Production Parity](#-docker--production-parity)
+14. [AWS Production Architecture](#️-aws-production-architecture)
+15. [License](#-license)
 
 ---
 
 ## 🎯 Overview & Value Proposition
 
-**CollabNet** combines the power and keyboard-centric efficiency of a modern desktop IDE with real-time browser collaboration:
+**CollabNet** combines the responsiveness, keyboard ergonomics, and visual polish of a modern desktop IDE with low-latency browser collaboration:
 
-| Feature | Description |
+| Capability | Technical Highlights |
 |---|---|
-| 🖊️ **Multi-Cursor Code Editing** | Synchronized CodeMirror editor with remote user cursors, selections, and live presence |
-| 🖥️ **Interactive Cloud Terminal** | Full `xterm.js` PTY terminal with multi-tab support, drag-to-resize, and bidirectional streaming over WebSockets |
-| 📁 **File System Management** | Tree explorer with nesting guides, inline F2 rename, accessible custom modals, and ZIP project export |
-| 💬 **Real-Time Group Chat** | Speech-bubble UI with timestamps, word-wrap, auto-scroll, and typing indicators |
-| 📹 **P2P Audio & Video Calls** | Low-latency mesh WebRTC calling with camera/microphone device toggles and grid layout |
-| 🎨 **Infinite Collaborative Whiteboard** | `tldraw`-powered drawing canvas with live shape/stroke synchronization |
-| 🤖 **AI Copilot** | Integrated code generation assistant backed by the Pollinations AI API (upgradeable to Amazon Bedrock) |
-| ⚡ **Multi-Language Code Runner** | Run code in 80+ languages via the Piston API with program output panel |
-| 📊 **Developer Dashboard** | Workspace home with system status, quick actions, and 1-click recent session rejoin from `localStorage` |
+| 🖊️ **Multi-Cursor Code Pairing** | Real-time CodeMirror editor synchronization with remote cursor positions, text selection highlights, and user presence rings. |
+| 🖥️ **Interactive Cloud Terminal** | Full `xterm.js` terminal with multi-tab interface, drag-to-resize, and bidirectional PTY streaming (PowerShell on Windows, Bash on Linux/macOS). |
+| 🤖 **Google Gemini AI Copilot** | Integrated pair-programmer backed by Google Gemini (`@google/generative-ai`) with SSE streaming, pre-flight credential redaction, and 1-click code injection. |
+| 🔑 **Google OAuth 2.0 Auth** | Session-based authentication via Passport.js with automatic developer fallback for zero-friction local testing. |
+| ⚡ **Sandboxed Code Execution** | Dual-mode code runner: execute live in the collaborative terminal via local sandbox or AWS EC2 worker, with Piston API fallback for 80+ languages. |
+| 📁 **File System Management** | VS Code-style tree explorer with nesting guides, accessible custom modals (no browser alerts), inline `F2` rename, directory import, and ZIP project export. |
+| 🎨 **Infinite Whiteboard** | Collaborative canvas powered by `tldraw v2` with live stroke and shape synchronization over Socket.IO. |
+| 📹 **P2P Audio & Video Calls** | Low-latency mesh WebRTC calling with microphone, camera, and speaker state sync. |
+| 📊 **Developer Dashboard** | Centralized workspace hub with live system health, quick-action room creators, and 1-click session rejoin from `localStorage`. |
 
 ---
 
@@ -55,101 +61,99 @@
 
 ### Frontend (`client/`)
 
-| Category | Library / Version |
-|---|---|
-| **Framework** | React `19.2.x` + TypeScript `6.0.x` |
-| **Build Tool** | Vite `8.x` |
-| **Routing** | React Router DOM `v7.15` |
-| **Styling** | Tailwind CSS `v4` + Vanilla CSS design tokens |
-| **Code Editor** | `@uiw/react-codemirror` `4.23.x` + `@uiw/codemirror-extensions-langs`, `codemirror-themes-all` |
-| **Monaco Editor** | `@monaco-editor/react` `4.7.x` + `monaco-editor` `0.55.x` |
-| **Terminal** | `@xterm/xterm` `6.x` + `@xterm/addon-fit` `0.11.x` |
-| **Whiteboard** | `tldraw` `2.4.x` |
-| **WebRTC** | `simple-peer` `9.11.x` |
-| **Sockets** | `socket.io-client` `4.8.x` |
-| **Icons** | `react-icons` `5.6.x` + `@iconify/react` `5.x` + `vscode-icons-js` |
-| **Notifications** | `react-hot-toast` `2.4.x` |
-| **Markdown** | `react-markdown` + `react-syntax-highlighter` |
-| **File Export** | `jszip` + `file-saver` |
-| **Utilities** | `axios`, `uuid`, `classnames`, `screenfull`, `lang-map`, `react-avatar` |
+| Category | Library / Package | Version | Purpose |
+|---|---|---|---|
+| **Framework** | React + React DOM | `19.2.x` | Modern reactive UI engine |
+| **Language** | TypeScript | `6.0.x` | Type safety and strict interface definitions |
+| **Bundler** | Vite + `@vitejs/plugin-react` | `8.0.x` | Sub-second HMR and production bundling |
+| **Styling** | Tailwind CSS + Design Tokens | `v4.0.x` | Utility classes with CSS custom properties |
+| **Code Editor** | `@uiw/react-codemirror` | `4.23.x` | Core collaborative code editor |
+| **Editor Extensions** | `@uiw/codemirror-extensions-langs` | `4.23.x` | 80+ language highlighters and syntax modes |
+| **Editor Themes** | `@uiw/codemirror-themes-all` | `4.23.x` | Dracula, GitHub Dark, One Dark, Tokyo Night, etc. |
+| **Monaco Editor** | `@monaco-editor/react` + `monaco-editor` | `4.7.x` / `0.55.x` | VS Code-grade editing capabilities |
+| **Terminal** | `@xterm/xterm` + `@xterm/addon-fit` | `6.0.x` / `0.11.x` | Full VT100 terminal emulator |
+| **Whiteboard** | `tldraw` | `2.4.x` | Infinite collaborative drawing canvas |
+| **WebSockets** | `socket.io-client` | `4.8.x` | Bidirectional real-time event client |
+| **WebRTC** | `simple-peer` | `9.11.x` | Mesh P2P audio and video streaming |
+| **Routing** | `react-router-dom` | `7.15.x` | Client-side routing (`/`, `/editor/:roomId`) |
+| **Icons** | `react-icons` (`lu`) + `vscode-icons-js` | `5.6.x` / `11.0.x` | Lucide SVG icons and VS Code file-type icons |
+| **Notifications** | `react-hot-toast` | `2.4.x` | Non-intrusive toast notifications |
+| **Markdown** | `react-markdown` + `react-syntax-highlighter`| `9.0.x` / `15.6.x` | Markdown and syntax rendering for AI responses |
+| **Project Export** | `jszip` + `file-saver` | `3.10.x` / `2.0.x` | Client-side project archive creation and download |
 
 ### Backend (`server/`)
 
-| Category | Library / Version |
-|---|---|
-| **Runtime** | Node.js `v18+` with TypeScript `5.9.x` |
-| **Framework** | Express `4.21.x` |
-| **WebSockets** | Socket.IO Server `4.8.x` |
-| **PTY Shell** | `node-pty` `1.1.x` — native Windows/Linux PTY with child-process fallback |
-| **Dev Runner** | `tsx` `4.22.x` (watch mode) |
-| **Env Config** | `dotenv` `16.x` |
-| **CORS** | `cors` `2.8.x` |
+| Category | Library / Package | Version | Purpose |
+|---|---|---|---|
+| **Runtime** | Node.js | `v20+` | Server-side JavaScript runtime |
+| **Language** | TypeScript | `5.9.x` | Static typing across server subsystems |
+| **Dev Runner** | `tsx` | `4.22.x` | Native ESM TypeScript execution with live watch mode |
+| **Framework** | Express.js | `4.21.x` | HTTP API and static file serving |
+| **WebSockets** | Socket.IO Server | `4.8.x` | Real-time event bus and room management |
+| **AI Integration** | `@google/generative-ai` | `0.24.x` | Google Gemini 1.5/2.5 Flash SDK |
+| **Auth** | Passport.js + `passport-google-oauth20` | `0.7.x` / `2.0.x` | Google OAuth 2.0 authentication |
+| **Sessions** | `express-session` + `connect-redis` | `1.19.x` / `10.0.x` | Session management with Redis store support |
+| **Security** | `helmet` + `cors` | `8.3.x` / `2.8.x` | HTTP security headers and CORS policy enforcement |
+| **Rate Limiting** | `express-rate-limit` | `8.7.x` | Brute-force and API abuse prevention |
+| **PTY Management** | `node-pty` | `1.1.x` | Native OS pseudo-terminal session manager |
+| **Cache / PubSub** | `ioredis` | `6.0.x` | High-performance Redis client for multi-node scaling |
+| **Validation** | `zod` | `4.6.x` | Schema validation for payloads |
 
 ---
 
 ## 🎨 UI/UX Design System
 
-CollabNet follows a strict, developer-first design system:
+CollabNet follows a developer-first design system optimized for long sessions and low cognitive overhead:
 
-| Token Category | Value / Specification |
-|---|---|
-| **Theme & Aesthetic** | Dark Mode (OLED / Deep Slate) — high contrast, low eye fatigue |
-| **Density Dial** | `8/10` (Dense / Dashboard) — optimized for screen real estate |
-| **Motion Dial** | `3/10` (Subtle) — 150–200ms transitions, `prefers-reduced-motion` compliant |
-| **Typography (UI)** | **IBM Plex Sans** (300, 400, 500, 600, 700) |
-| **Typography (Code)** | **JetBrains Mono** / Space Mono (monospace code, terminal, breadcrumbs) |
-| **Primary Accent** | `#3B82F6` (Electric Blue / Active Focus) |
-| **Secondary Accent** | `#22C55E` (Emerald Green / Connected Status / Terminal) |
-| **Canvas Background** | `#0B0F17` (Deep Obsidian Canvas) |
-| **Surface Panels** | `#111827` (Sidebars & Toolbars) |
-| **Elevated Cards** | `#161F30` (Active Tabs, Modals, Dropdowns) |
-| **Border Tokens** | `#26334A` (Subtle container divisions) |
-| **Icon System** | Lucide SVG icons (`react-icons/lu`) — zero emojis used as UI icons |
+| Token Category | Specification | Implementation Note |
+|---|---|---|
+| **Aesthetic & Theme** | Dark Mode (OLED / Deep Slate) | High contrast, zero eye strain in dark environments |
+| **Density Dial** | `8/10` (Dense / Dashboard) | Maximizes usable workspace and editor screen real estate |
+| **Motion Dial** | `3/10` (Subtle) | Fast 150–200ms transitions, respects `prefers-reduced-motion` |
+| **UI Typography** | **IBM Plex Sans** (300, 400, 500, 600, 700) | Crisp, legible interface typography |
+| **Monospace Typography**| **JetBrains Mono** / Space Mono | Monospace for code, breadcrumbs, and terminal buffers |
+| **Primary Accent** | `#3B82F6` (Electric Blue) | Active tab borders, focus states, interactive controls |
+| **Secondary Accent** | `#22C55E` (Emerald Green) | Connected status rings, terminal prompts, success indicators |
+| **Obsidian Canvas** | `#0B0F17` | Root background color |
+| **Surface Panels** | `#111827` | Activity bar, sidebars, and top navigation header |
+| **Elevated Cards** | `#161F30` | Active editor tabs, modals, dropdowns, and cards |
+| **Border Tokens** | `#26334A` | 1px subtle container dividing lines |
+| **Icon Standard** | Lucide Icons (`react-icons/lu`) | Consistent 1.5px stroke weight; zero emojis used as UI icons |
 
-> Design system source of truth: [`design-system/collabnet/MASTER.md`](design-system/collabnet/MASTER.md)
+> Full design system tokens are documented in [`design-system/collabnet/MASTER.md`](design-system/collabnet/MASTER.md).
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
 ```
-                               ┌────────────────────────────────────────┐
-                               │            Client (Browser)            │
-                               │  React 19 + TypeScript + Vite + Tailwind │
-                               └───────────────────┬────────────────────┘
-                                                   │
-                        ┌──────────────────────────┴──────────────────────────┐
-                        │ WebSocket (Socket.IO)              WebRTC (P2P Mesh)│
-                        ▼                                                     ▼
-        ┌──────────────────────────────┐                       ┌──────────────────────────────┐
-        │        Server (Node.js)      │                       │     Peer Collaborators       │
-        │ Express + Socket.IO + PTY    │                       │ Video / Voice Calling Stream │
-        └───────────────┬──────────────┘                       └──────────────────────────────┘
-                        │
-         ┌──────────────┴──────────────┐
-         ▼                             ▼
-┌──────────────────┐          ┌──────────────────┐
-│ Local / AWS PTY  │          │    Piston API    │
-│  Shell Worker    │          │ Code Executions  │
-└──────────────────┘          └──────────────────┘
+                                  ┌────────────────────────────────────────┐
+                                  │            Client (Browser)            │
+                                  │ React 19 + TypeScript + Vite + Tailwind│
+                                  └───────────────────┬────────────────────┘
+                                                      │
+                       ┌──────────────────────────────┴──────────────────────────────┐
+                       │ HTTP / SSE                       WebSocket (Socket.IO)      │ WebRTC (P2P Mesh)
+                       ▼                                  ▼                          ▼
+      ┌─────────────────────────────────┐ ┌────────────────────────────────┐ ┌───────────────────┐
+      │          Express REST           │ │        Socket.IO Server        │ │ Peer Collaborator │
+      │  /auth/*       /api/ai/copilot  │ │  File Sync     Presence Sync   │ │ Audio/Video Media │
+      │  /healthz      /readyz          │ │  Terminal PTY  Drawing Sync    │ └───────────────────┘
+      └────────┬───────────────┬────────┘ └───────┬────────────────┬───────┘
+               │               │                  │                │
+               ▼               ▼                  ▼                ▼
+     ┌──────────────────┐ ┌─────────┐    ┌─────────────────┐ ┌─────────────────┐
+     │  Google Gemini   │ │ Google  │    │ Local PTY Shell │ │   Code Runner   │
+     │   AI Service     │ │  OAuth  │    │  (node-pty /    │ │  Local Sandbox  │
+     │ (Secret Redact)  │ │Passport │    │  child_process) │ │  or EC2 Worker  │
+     └──────────────────┘ └─────────┘    └─────────────────┘ └────────┬────────┘
+                                                                      │ (fallback)
+                                                                      ▼
+                                                             ┌─────────────────┐
+                                                             │   Piston API    │
+                                                             │ 80+ Lang Runner │
+                                                             └─────────────────┘
 ```
-
-### Client (Frontend)
-- **Framework**: React 19 with TypeScript
-- **Build Engine**: Vite 8.x
-- **Styling**: Tailwind CSS v4 + Vanilla CSS design system tokens
-- **Code Editor**: CodeMirror (80+ language modes, themes, remote cursor highlighting)
-- **Interactive Terminal**: `@xterm/xterm` with `@xterm/addon-fit` and drag-to-resize
-- **Whiteboard**: `tldraw` (infinite canvas, live sync)
-- **WebRTC**: Simple-Peer (mesh P2P audio/video)
-- **Sockets**: `socket.io-client`
-- **Routing**: React Router v7
-
-### Server (Backend)
-- **Runtime**: Node.js with TypeScript & TSX Watch
-- **Framework**: Express.js
-- **WebSockets**: Socket.IO Server (bidirectional real-time event bus)
-- **PTY Management**: `node-pty` — native Windows/Linux shell spawning with `child_process` fallback for environments without native binaries
 
 ---
 
@@ -157,97 +161,117 @@ CollabNet follows a strict, developer-first design system:
 
 ```
 CollabNet/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                        # GitHub Actions CI (Typecheck, Build, Security Audit)
 ├── client/                               # React 19 Frontend Application
-│   ├── Dockerfile                        # Multi-stage: Node builder → Nginx runner
-│   ├── nginx.conf                        # SPA routing + /healthz endpoint
-│   ├── vite.config.ts
-│   ├── index.html
+│   ├── .env.example                      # Client environment variables blueprint
+│   ├── Dockerfile                        # Multi-stage: Node 20 builder → Nginx 1.27 runner
+│   ├── nginx.conf                        # SPA routing fallback + /healthz endpoint
+│   ├── vite.config.ts                    # Vite build and path alias configuration
+│   ├── index.html                        # Application entry HTML
 │   └── src/
+│       ├── api/                          # API client modules
+│       │   ├── aiApi.ts                  # Gemini AI SSE streaming client
+│       │   ├── authApi.ts                # Google OAuth session API
+│       │   ├── pistonApi.ts              # Piston API instance
+│       │   └── pistonExecute.ts          # Multi-language code execution
 │       ├── components/
-│       │   ├── call/                     # WebRTC call panel & video drawer
+│       │   ├── call/                     # WebRTC call panel & drawer
 │       │   │   ├── CallPanel.tsx
 │       │   │   └── CallsView.tsx
 │       │   ├── chats/                    # Real-time chat bubbles & input
 │       │   │   ├── ChatInput.tsx
 │       │   │   └── ChatList.tsx
 │       │   ├── common/                   # Shared UI primitives
-│       │   │   ├── Breadcrumbs.tsx       # IDE file breadcrumbs & sync status
-│       │   │   ├── EditorTopBar.tsx      # Top bar with Room ID & call button
+│       │   │   ├── Breadcrumbs.tsx       # File path & sync status
+│       │   │   ├── EditorTopBar.tsx      # Top bar with Room ID & Run button
 │       │   │   ├── Modal.tsx             # Accessible dialog primitive
-│       │   │   ├── Select.tsx            # Styled select component
+│       │   │   ├── Select.tsx            # Styled select control
 │       │   │   ├── StatusBar.tsx         # Bottom status bar & terminal toggle
-│       │   │   └── Users.tsx             # Collaborator cards with typing indicator
-│       │   ├── connection/               # Offline & connection failure views
-│       │   │   └── ConnectionStatusPage.tsx
+│       │   │   └── Users.tsx             # Collaborator presence cards
+│       │   ├── connection/               # Offline & connection failure screens
 │       │   ├── dashboard/                # Home dashboard components
 │       │   │   └── RecentRooms.tsx       # localStorage session history & 1-click rejoin
 │       │   ├── drawing/                  # tldraw whiteboard integration
 │       │   │   └── DrawingEditor.tsx
-│       │   ├── editor/                   # CodeMirror editor & tabs
-│       │   │   ├── Editor.tsx            # Full-height collaborative editor
+│       │   ├── editor/                   # Collaborative code editor
+│       │   │   ├── Editor.tsx            # Full-height CodeMirror editor
 │       │   │   ├── EditorComponent.tsx   # Workspace editor container
 │       │   │   ├── FileTab.tsx           # VS Code-style tabs with middle-click close
 │       │   │   └── collaborativeHighlighting.ts
-│       │   ├── files/                    # File tree & accessible modals
-│       │   │   ├── FileModals.tsx        # New File/Folder/Delete custom dialogs
+│       │   ├── files/                    # File tree & modal dialogs
+│       │   │   ├── FileModals.tsx        # Accessible New File/Folder/Delete dialogs
 │       │   │   ├── FileStructureView.tsx # Tree explorer with guides & context menu
 │       │   │   └── RenameView.tsx        # Inline F2 rename input
-│       │   ├── forms/                    # Room join & create form card
+│       │   ├── forms/                    # Room join & creation card
 │       │   │   └── FormComponent.tsx
 │       │   ├── sidebar/                  # 48px IDE activity bar & views
 │       │   │   ├── Sidebar.tsx
-│       │   │   ├── CallPanelButton.tsx
-│       │   │   ├── tooltipStyles.ts
 │       │   │   └── sidebar-views/
-│       │   │       ├── ChatsView.tsx
-│       │   │       ├── CopilotView.tsx   # AI Code generation assistant
+│       │   │       ├── ChatsView.tsx     # Real-time group chat
+│       │   │       ├── CopilotView.tsx   # Google Gemini AI assistant
 │       │   │       ├── FilesView.tsx     # Project explorer & ZIP export
-│       │   │       ├── RunView.tsx       # Multi-language code execution (Piston)
+│       │   │       ├── RunView.tsx       # Multi-language code runner
 │       │   │       ├── SettingsView.tsx  # Font & theme preferences
-│       │   │       ├── SidebarButton.tsx # Activity bar icon button
 │       │   │       └── UsersView.tsx     # Collaborators & invite actions
 │       │   ├── terminal/                 # Bottom interactive xterm.js terminal
-│       │   │   └── TerminalPanel.tsx     # Tabs, PTY streaming, drag resize, fullscreen
-│       │   ├── webcam-stream/            # WebRTC camera grid & device controls
+│       │   │   └── TerminalPanel.tsx     # Tabs, PTY streaming, drag-resize
+│       │   ├── webcam-stream/            # WebRTC camera grid & device toggles
 │       │   └── workspace/                # IDE layout assembler
-│       │       └── index.tsx
-│       ├── context/                      # React Context state providers
-│       │   ├── AppContext.tsx
-│       │   ├── ChatContext.tsx
-│       │   ├── CopilotContext.tsx
-│       │   ├── FileContext.tsx
-│       │   ├── RunCodeContext.tsx
-│       │   ├── SettingContext.tsx
-│       │   ├── SocketContext.tsx
-│       │   └── ViewContext.tsx
+│       ├── context/                      # React Context providers
+│       │   ├── AppContext.tsx            # Global IDE state
+│       │   ├── ChatContext.tsx           # Chat messages & unread counts
+│       │   ├── CopilotContext.tsx        # Gemini AI generation state
+│       │   ├── FileContext.tsx           # File system operations & tabs
+│       │   ├── RunCodeContext.tsx        # Code execution & language detection
+│       │   ├── SettingContext.tsx        # Editor font, theme & size preferences
+│       │   ├── SocketContext.tsx         # WebSocket connection provider
+│       │   └── ViewContext.tsx           # Active sidebar view manager
+│       ├── hooks/                        # Custom React hooks
+│       │   ├── useAuth.ts                # Google OAuth session state hook
+│       │   ├── useResponsive.ts          # Responsive layout queries
+│       │   └── useWindowDimensions.ts    # Viewport tracking
 │       ├── pages/
 │       │   ├── HomePage.tsx              # Developer workspace dashboard
 │       │   └── EditorPage.tsx            # Main IDE workspace route
 │       └── styles/
-│           └── global.css                # Global CSS tokens & component utilities
+│           └── global.css                # Global CSS variables & component utilities
 │
 ├── server/                               # Express + Socket.IO Backend
+│   ├── .env.example                      # Server environment variables blueprint
 │   ├── Dockerfile                        # Multi-stage: deps → production runner (non-root)
 │   └── src/
+│       ├── auth/                         # Authentication subsystem
+│       │   ├── passport.ts               # Passport.js Google OAuth strategy & session store
+│       │   └── routes.ts                 # /auth/google, /auth/dev-login, /auth/current-user
+│       ├── middleware/                   # Express middleware
+│       │   ├── rateLimit.ts              # express-rate-limit instances for auth & AI
+│       │   └── requireAuth.ts            # Route protection guard
+│       ├── routes/                       # Express route controllers
+│       │   └── ai.routes.ts              # POST /api/ai/copilot SSE endpoint
+│       ├── services/                     # Business logic services
+│       │   ├── ai/
+│       │   │   └── gemini.service.ts     # Google Gemini API + secret redaction engine
+│       │   └── execution/
+│       │       └── runner.service.ts     # Collaborative sandbox & EC2 execution worker
 │       └── types/
-│           ├── server.ts                 # Main server & all socket event handlers
-│           ├── terminalManager.ts        # PTY and child-process shell session manager
-│           ├── socket.ts                 # Socket event name enums
-│           └── user.ts                   # User & presence TypeScript types
+│           ├── server.ts                 # Main server entry & socket event dispatchers
+│           ├── socket.ts                 # SocketEvent enum definitions
+│           ├── terminalManager.ts        # PTY shell process manager
+│           └── user.ts                   # User, status, and presence types
 │
 ├── scripts/
-│   └── test-collaboration.mjs            # Multi-socket collaboration integration test
-│
+│   └── test-collaboration.mjs            # Multi-client socket collaboration smoke test
 ├── design-system/                        # UI/UX Pro Max Design System
 │   └── collabnet/
-│       ├── MASTER.md                     # Source of truth design tokens
+│       ├── MASTER.md                     # Design tokens & color palette
 │       └── pages/
-│           ├── dashboard.md              # Dashboard page overrides
-│           └── editor.md                 # Editor workspace overrides
-│
+│           ├── dashboard.md              # Dashboard page specification
+│           └── editor.md                 # Editor workspace specification
 ├── docker-compose.yml                    # Production-parity local stack (client, server, Redis)
-├── package.json                          # Root workspace scripts
-├── CollabNet-AWS-Plan.md                 # Full AWS production architecture blueprint
+├── package.json                          # Workspace root orchestrator scripts
+├── CollabNet-AWS-Plan.md                 # AWS cloud production architecture blueprint
 └── README.md
 ```
 
@@ -256,611 +280,349 @@ CollabNet/
 ## ⚡ Key Features
 
 ### 1. Developer Workspace Dashboard (`/`)
-- **System Status**: Real-time server connectivity indicator.
-- **Quick Action Cards**: Create an instant coding room, jump to a whiteboard, or open the interactive shell.
-- **Recent Sessions History**: Preserves recently joined rooms in `localStorage` with user handles, timestamps, and 1-click rejoining.
-- **Validated Join Form**: Inline validation, auto-generated Room IDs, and copy-to-clipboard.
+- **System Metrics**: Real-time server connectivity health indicator with animated pulse status.
+- **Quick Action Cards**: 1-click instant room generators for code pairing (`code-xxxxxx`) or shared whiteboard drawing (`draw-xxxxxx`).
+- **Recent Sessions History**: Preserves recently joined workspaces in `localStorage` with user handles, room IDs, and timestamps for 1-click rejoining.
+- **Validated Join Form**: Client-side validation, auto-generated Room IDs, and copy-to-clipboard shortcut.
+- **Google Profile Bar**: Displays authenticated user avatar, display name, and sign-out action, with fallback to instant Google sign-in.
 
-### 2. Code Editor & Tab Management
-- **VS Code-Style Tabs**: Active top border indicator, middle-click to close, horizontal mousewheel scrolling.
+### 2. Multi-Cursor Collaborative Code Editor
+- **Live Remote Cursors**: See where team members are typing with color-coded cursor markers and live name tags using `collaborativeHighlighting.ts`.
+- **VS Code-Style Tabs**: Active top border indicator, middle-click tab closure, and horizontal mousewheel scrolling.
 - **Breadcrumb Navigation**: Shows path hierarchy (`workspace > folder > file.js`), language badge, and real-time sync status.
-- **Collaborative Cursors**: Live remote user cursors and text selection highlights using `collaborativeHighlighting.ts`.
-- **Multi-Theme & Font Customization**: JetBrains Mono, Fira Code, Space Mono — customizable font size and editor theme.
-- **80+ Language Modes**: CodeMirror auto-detects language from file extension with full syntax highlighting.
+- **80+ Language Modes**: CodeMirror automatically detects file extensions to load syntax highlighters and linting modes.
+- **Theme & Typography Customization**: Select between JetBrains Mono, Fira Code, and Space Mono with adjustable font sizing and 10+ themes (Dracula, Nord, One Dark, GitHub Dark, etc.).
 
 ### 3. Bottom Interactive Shell Terminal
-- **xterm.js Integration**: Full terminal emulation with `@xterm/addon-fit` for automatic viewport fitting.
-- **Bidirectional PTY Streaming**: Real-time terminal I/O over Socket.IO (PowerShell on Windows, Bash on Linux/macOS).
-- **Multi-Tab Interface**: Switch between the live interactive PTY shell and program execution output.
-- **Drag-to-Resize & Fullscreen**: Grab the top border to resize height (120px → 80vh) or toggle fullscreen mode.
-- **Keyboard Shortcut**: `Ctrl + \`` / `Cmd + \`` anywhere in the IDE toggles the terminal panel.
+- **xterm.js Emulation**: Real VT100 terminal emulation with `@xterm/addon-fit` for dynamic viewport resizing.
+- **Bidirectional PTY Streaming**: Real-time shell I/O piped over Socket.IO (PowerShell on Windows, Bash on Linux/macOS).
+- **Multi-Tab Interface**: Switch between the live interactive PTY shell and the program execution output tab.
+- **Drag-to-Resize & Fullscreen**: Grab the top border to drag height from 120px to 80vh, or toggle one-click fullscreen.
+- **Global Toggle Shortcut**: Press `Ctrl + \`` (or `Cmd + \``) anywhere in the IDE to toggle the terminal panel.
 
-### 4. File Explorer with Accessible Modals
-- **Accessible Dialogs**: Replaces browser `prompt()` and `confirm()` with custom accessible `<Modal>` dialogs for New File, New Folder, and Delete Confirmation.
-- **Visual Indentation Guides**: Clear directory nesting lines, smooth chevron toggles, and `vscode-icons-js` file-type icons.
+### 4. Google Gemini AI Copilot
+- **Integrated Assistant**: Embedded in the IDE activity bar with a dedicated prompt input and Markdown-rendered code output with syntax highlighting.
+- **Server-Side Events (SSE) Streaming**: Token-by-token code generation streaming via `POST /api/ai/copilot`.
+- **Pre-Flight Secret Redaction**: Proprietary regex engine inspects prompt and context, masking API keys, AWS credentials, database URLs, session secrets, and private keys before forwarding to the model.
+- **Active Context Sharing**: Automatically includes up to 4,000 characters of the active file to provide context-aware suggestions, refactorings, and bug fixes.
+- **1-Click Insertion**: Single-click actions to copy output, append code to the active file, or replace file contents, automatically syncing changes to all collaborators.
+
+### 5. Google OAuth 2.0 & Session Management
+- **Google OAuth 2.0**: Secure authentication flow via Passport.js (`passport-google-oauth20`) storing profile name, email, and avatar.
+- **Developer Session Fallback**: Zero-configuration mode allows instant 1-click dev login (`/auth/dev-login`) for rapid local testing when Google OAuth credentials are not set.
+- **Security & Rate Limiting**: Encrypted session cookies (`collabnet.sid`), `helmet` HTTP headers, and strict rate limiting (30 requests/min for AI endpoints).
+
+### 6. Sandboxed Code Execution Engine
+- **One-Click Run Button**: Dedicated play button in the top bar and execution panel immediately opens the terminal and starts execution.
+- **Dual Execution Engine**:
+  - **AWS EC2 Worker Mode**: If `EXECUTION_WORKER_URL` is configured, requests are securely dispatched via Bearer token to a sandboxed remote worker.
+  - **Local Sandbox Fallback**: Spawns isolated processes (Node.js, Python 3, TypeScript via `tsx`, Bash, PowerShell) in a sandboxed temporary directory.
+- **Collaborative Output**: Execution logs and ANSI terminal colors are streamed live to all collaborators in the room via `SocketEvent.TERMINAL_DATA`.
+- **Piston API Runner**: Secondary execution engine supporting 80+ runtimes with custom input/stdin support.
+
+### 7. File Explorer & Directory Management
+- **Accessible Dialogs**: Replaces crude browser `prompt()` and `confirm()` with custom accessible modal dialogs for New File, New Folder, and Delete confirmation.
 - **F2 Inline Rename**: Press `F2` on any highlighted file or folder to rename with inline validation.
-- **Clamped Context Menu**: Right-click menu auto-bounds within viewport dimensions.
-- **ZIP Export**: Download the entire project as a `.zip` archive using `jszip` + `file-saver`.
+- **Directory Nesting Guides**: Visual indentation lines, smooth chevron folder toggles, and `vscode-icons-js` file-type icons.
+- **Local Directory Import**: Open an existing folder from your local machine directly into the browser using the File System Access API.
+- **ZIP Project Export**: Download the entire collaborative project tree as a `.zip` archive via `jszip` + `file-saver`.
 
-### 5. Collaboration, Presence & Chat
-- **Presence Indicators**: Status rings for online/offline state and live typing indicators on collaborator cards.
-- **Group Chat**: Speech bubbles with timestamps, word-wrapping, and auto-scroll.
-- **Invite & Share**: 1-click room URL copying and native Web Share API integration.
-- **WebRTC Audio & Video**: Peer-to-peer audio/video streaming via `simple-peer` with camera and microphone toggles, speaker state sync, and grid video layout.
+### 8. WebRTC Audio & Video Calling
+- **Low-Latency Mesh P2P**: Direct browser-to-browser audio and video communication using `simple-peer`.
+- **Media Controls**: Individual toggles for microphone mute, camera off, and speaker output state.
+- **Collaborator Grid**: Responsive video grid layout with active speaker indicators.
 
-### 6. Infinite Collaborative Whiteboard
-- Powered by `tldraw v2` with live shape and stroke synchronization over Socket.IO.
-- Dedicated dark mode styling and 1-click toggle between code editing and drawing modes.
-- Initial snapshot sync when new collaborators join a room.
-
-### 7. AI Copilot
-- Sidebar panel with a prompt input and Markdown-rendered code output using `react-markdown` + `react-syntax-highlighter`.
-- Backed by the Pollinations AI API (zero-cost, no API key required for local development).
-- Designed to be swapped with **Amazon Bedrock** (Claude 3.5 Sonnet) for production deployments.
-
-### 8. Multi-Language Code Runner
-- Executes the active file or selected snippet in 80+ languages via the **Piston API**.
-- Output rendered in the terminal output tab with ANSI color support.
+### 9. Infinite Collaborative Whiteboard
+- **Powered by `tldraw v2`**: Infinite collaborative vector canvas embedded inside the IDE.
+- **Real-Time Stroke Sync**: Synchronizes drawing shapes, arrows, notes, and text strokes across peers over Socket.IO.
+- **Dark Mode Styling**: Tailored to match CollabNet's OLED dark mode design tokens.
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Action |
-|---|---|
-| `Ctrl + \`` / `Cmd + \`` | Toggle bottom terminal panel |
-| `F2` | Rename selected file or directory |
-| `Escape` | Close any open modal dialog or context menu |
-| `Middle Click` | Close editor tab |
-| `Enter` | Submit rename, modal form, or chat message |
+| Shortcut | Scope | Action |
+|---|---|---|
+| `Ctrl + \`` / `Cmd + \`` | Global IDE | Toggle bottom interactive terminal drawer |
+| `F2` | File Tree | Inline rename selected file or folder |
+| `Escape` | Global IDE | Close active modal dialog, context menu, or drawer |
+| `Middle Click` | Editor Tabs | Close clicked file tab |
+| `Enter` | Forms / Dialogs | Confirm rename, submit modal form, or send chat message |
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started & Local Setup
 
 ### Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher
+- **Node.js**: `v20.0.0` or higher
+- **npm**: `v9.0.0` or higher
 
-### 1. Clone & Install
+### 1. Clone the Repository
 
 ```bash
-# Clone repository
 git clone https://github.com/your-username/CollabNet.git
 cd CollabNet
+```
 
-# Install all dependencies from workspace root
+### 2. Install Dependencies
+
+Install all dependencies across root, client, and server in a single command:
+
+```bash
 npm run install:all
-
-# OR install individually:
-cd server && npm install && cd ..
-cd client && npm install && cd ..
 ```
 
-### 2. Environment Configuration
+*(Alternatively, install individually: `cd server && npm install && cd ../client && npm install`)*
 
-Create `client/.env`:
+### 3. Configure Environment Variables
+
+#### Client Configuration (`client/.env`)
+Copy the example environment file:
+```bash
+cp client/.env.example client/.env
+```
+
+Default settings:
 ```env
-VITE_SERVER_URL=http://localhost:3000
+# URL of the backend server (Socket.IO + API)
+VITE_BACKEND_URL=http://localhost:3000
+
+# Optional: self-hosted Piston code execution API (leave blank to use public Piston API)
+VITE_PISTON_API_URL=
 ```
 
-Create `server/.env`:
+#### Server Configuration (`server/.env`)
+Copy the example environment file:
+```bash
+cp server/.env.example server/.env
+```
+
+Minimal local development settings:
 ```env
 PORT=3000
 NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+SERVER_URL=http://localhost:3000
+
+# Required in production; dev defaults to fallback if blank
+SESSION_SECRET=dev-session-secret-change-in-production-min-32-chars
+
+# Google Gemini AI (Optional for local dev — get key at https://aistudio.google.com/app/apikey)
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash
+
+# Google OAuth (Optional for local dev — falls back to /auth/dev-login automatically)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
 ```
 
-### 3. Running in Development
+> **Zero-Config Developer Mode**: If `GOOGLE_CLIENT_ID` or `GEMINI_API_KEY` are left blank, the server will gracefully start in local development mode. Auth requests will automatically route to `/auth/dev-login`.
 
-**Terminal 1** — Start the backend server:
+### 4. Run in Development Mode
+
+From the repository root, start both servers concurrently:
+
 ```bash
-cd server
-npm run dev
-# Server starts on http://localhost:3000
+# Terminal 1 — Start backend server (Express + Socket.IO + TSX watch)
+npm run dev:server
+
+# Terminal 2 — Start frontend client (Vite)
+npm run dev:client
 ```
 
-**Terminal 2** — Start the frontend dev server:
-```bash
-cd client
-npm run dev
-# Client starts on http://localhost:5173
-```
+- **Frontend Application**: `http://localhost:5173`
+- **Backend API & WebSockets**: `http://localhost:3000`
+- **Health Check Endpoint**: `http://localhost:3000/healthz`
 
-Or use the root workspace shortcuts:
-```bash
-# From the repo root:
-npm run dev:server   # starts server
-npm run dev:client   # starts client
-```
-
-Open `http://localhost:5173`, generate a Room ID, enter your name, and share the URL with a collaborator.
+Open `http://localhost:5173`, create or enter a Room ID, and share the room link with a collaborator to start pairing!
 
 ---
 
-## 🐳 Docker / Production-Parity Setup
+## 🔧 Environment Variables Reference
 
-The included `docker-compose.yml` spins up a fully orchestrated local stack mirroring the production AWS architecture:
+### Client (`client/.env`)
 
-| Container | Image | Port | Role |
+| Variable | Required | Default | Description |
 |---|---|---|---|
-| `collab-redis` | `redis:7-alpine` | `6379` | Socket.IO multi-node pub/sub adapter |
-| `collab-server` | Built from `server/Dockerfile` | `3000` | Express + Socket.IO backend |
-| `collab-client` | Built from `client/Dockerfile` | `8080 → 80` | React SPA served via Nginx |
+| `VITE_BACKEND_URL` | Yes | `http://localhost:3000` | Target URL for the Express backend & Socket.IO server |
+| `VITE_PISTON_API_URL` | No | `https://emkc.org/api/v2/piston` | Custom self-hosted Piston code execution API URL |
 
+### Server (`server/.env`)
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `PORT` | No | `3000` | Port on which the Express server listens |
+| `NODE_ENV` | No | `development` | Runtime environment (`development` or `production`) |
+| `CLIENT_URL` | Yes | `http://localhost:5173` | Allowed CORS origin for browser client connections |
+| `SERVER_URL` | No | `http://localhost:3000` | Publicly reachable base URL of the backend |
+| `SESSION_SECRET` | Yes (prod) | Auto-generated in dev | 32+ character random secret for signing session cookies |
+| `GOOGLE_CLIENT_ID` | No | `""` | Google Cloud Console OAuth 2.0 Client ID |
+| `GOOGLE_CLIENT_SECRET` | No | `""` | Google Cloud Console OAuth 2.0 Client Secret |
+| `GOOGLE_CALLBACK_URL` | No | `http://localhost:3000/auth/google/callback` | OAuth redirect URI |
+| `GEMINI_API_KEY` | No | `""` | Google AI Studio Gemini API key |
+| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Gemini model variant (`gemini-2.5-flash`, `gemini-1.5-flash`) |
+| `REDIS_URL` | No | `""` | Redis connection URL for multi-node Socket.IO scaling |
+| `EXECUTION_WORKER_URL` | No | `""` | Optional URL of remote EC2 sandboxed runner worker |
+| `EXECUTION_WORKER_SECRET` | No | `""` | Bearer authorization secret for the EC2 runner worker |
+| `TURN_URL` | No | `""` | Optional Coturn TURN server URL for WebRTC NAT traversal |
+| `TURN_USERNAME` | No | `""` | TURN server username |
+| `TURN_PASSWORD` | No | `""` | TURN server credential password |
+
+---
+
+## 🌐 REST & SSE API Reference
+
+| Method | Endpoint | Auth Required | Description |
+|---|---|---|---|
+| `GET` | `/healthz` | No | Liveness probe returning `{ status: "healthy", timestamp }` (HTTP 200) |
+| `GET` | `/readyz` | No | Readiness probe returning `{ status: "ready", timestamp }` (HTTP 200) |
+| `GET` | `/auth/google` | No | Initiates Google OAuth 2.0 redirect (falls back to dev-login if unconfigured) |
+| `GET` | `/auth/google/callback` | No | Google OAuth 2.0 callback endpoint handling token exchange |
+| `GET` | `/auth/dev-login` | No | Instant developer session login for local testing without OAuth credentials |
+| `GET` | `/auth/current-user` | Yes | Returns authenticated user profile (`id`, `displayName`, `email`, `avatarUrl`) |
+| `POST` | `/auth/logout` | Yes | Destroys current session and clears `collabnet.sid` cookie |
+| `POST` | `/api/ai/copilot` | Yes | Server-Side Events (SSE) stream for Gemini AI code generation |
+
+### Example: AI Copilot Request (`POST /api/ai/copilot`)
 ```bash
-# Build and start all services
-docker compose up --build -d
-
-# Stop all services
-docker compose down
-
-# View logs
-docker compose logs -f server
+curl -X POST http://localhost:3000/api/ai/copilot \
+  -H "Content-Type: application/json" \
+  --cookie "collabnet.sid=..." \
+  -d '{"prompt": "Write an async retry function in TypeScript", "context": "export interface Config {}"}'
 ```
-
-> **Note**: The client Dockerfile accepts `VITE_SERVER_URL` and `VITE_PISTON_API_URL` as build-time `ARG`s — set them in `docker-compose.yml` or pass with `--build-arg`.
-
-### Server Dockerfile highlights
-- Multi-stage build: `deps` → `runner`
-- Non-root execution (`USER node`) for security
-- `/healthz` endpoint for ALB health checks
-
-### Client Dockerfile highlights
-- Multi-stage build: `node:20-alpine` builder → `nginx:1.27-alpine` runner
-- Custom `nginx.conf` with SPA fallback (`try_files $uri /index.html`)
-- `/healthz` health check endpoint
 
 ---
 
 ## 📡 Socket.IO Event Reference
 
+All collaborative real-time actions are coordinated via strongly typed Socket.IO events (`server/src/types/socket.ts`):
+
 | Event Name | Direction | Payload | Description |
 |---|---|---|---|
-| `join-request` | Client → Server | `{ username, roomId }` | Request to join a room |
-| `join-accepted` | Server → Client | `{ user, users, fileStructure }` | Acknowledgment of joining |
-| `user-joined` | Server → Client | `{ user }` | Broadcast when peer joins |
-| `user-disconnected` | Server → Client | `{ socketId }` | Broadcast when peer disconnects |
-| `file-created` | Both | `{ parentDirId, newFile }` | File creation sync |
-| `file-updated` | Both | `{ fileId, newContent }` | Live code edit sync |
-| `file-renamed` | Both | `{ fileId, newName }` | File rename sync |
-| `file-deleted` | Both | `{ fileId }` | File deletion sync |
-| `cursor-move` | Both | `{ cursorPosition, selectionStart, selectionEnd }` | Remote cursor coordinates |
-| `typing-start` | Both | `{ cursorPosition }` | User typing activity trigger |
-| `typing-pause` | Both | — | Typing pause trigger |
-| `send-message` | Client → Server | `{ message }` | Chat message transmission |
-| `receive-message` | Server → Client | `{ message }` | Broadcast chat message |
-| `terminal:init` | Client → Server | `{ cols, rows }` | Initialize PTY shell session |
-| `terminal:data` | Both | `{ data }` | Terminal keystrokes & PTY output |
-| `terminal:resize` | Client → Server | `{ cols, rows }` | Terminal viewport dimension resize |
-| `terminal:clear` | Client → Server | — | Terminal buffer clear |
-| `request-drawing` | Client → Server | — | Request latest whiteboard snapshot |
-| `sync-drawing` | Server → Client | `{ drawingData }` | Initial whiteboard snapshot sync |
-| `drawing-update` | Both | `{ snapshot }` | Incremental whiteboard change diff |
-| `stream-ready` | Client → Server | — | WebRTC media stream ready |
-| `webrtc-signal` | Both | `{ userID, signal }` | WebRTC peer negotiation signal |
-| `mic-state` | Both | `{ userID, micOn }` | Microphone mute toggle sync |
-| `speaker-state` | Both | `{ userID, speakersOn }` | Audio output toggle sync |
+| **Session & Room** | | | |
+| `join-request` | Client → Server | `{ username, roomId }` | Request to join a specific room |
+| `join-accepted` | Server → Client | `{ user, users, fileStructure }` | Acknowledges join, sends initial room state |
+| `user-joined` | Server → Client | `{ user }` | Broadcast to peers when a new collaborator joins |
+| `user-disconnected` | Server → Client | `{ socketId }` | Broadcast to peers when a collaborator disconnects |
+| `username-exists` | Server → Client | — | Error event emitted if the requested username is taken |
+| **File Operations** | | | |
+| `file-created` | Both | `{ parentDirId, newFile }` | Syncs newly created file across all peers |
+| `file-updated` | Both | `{ fileId, newContent }` | Syncs live code edits across open editor tabs |
+| `file-renamed` | Both | `{ fileId, newName }` | Syncs file rename across the tree explorer |
+| `file-deleted` | Both | `{ fileId }` | Syncs file deletion across the project tree |
+| `directory-created` | Both | `{ parentDirId, newDirectory }` | Syncs directory creation |
+| `directory-renamed` | Both | `{ dirId, newName }` | Syncs directory rename |
+| `directory-deleted` | Both | `{ dirId }` | Syncs directory deletion |
+| `sync-file-structure` | Both | `{ fileStructure }` | Full project tree synchronization |
+| **Cursor & Presence** | | | |
+| `cursor-move` | Both | `{ cursorPosition, selectionStart, selectionEnd }` | Streams remote cursor coordinates and selection range |
+| `typing-start` | Both | `{ cursorPosition }` | Triggers live typing indicator on collaborator card |
+| `typing-pause` | Both | — | Removes live typing indicator |
+| **Chat & Messaging** | | | |
+| `send-message` | Client → Server | `{ message }` | Dispatches group chat message |
+| `receive-message` | Server → Client | `{ message }` | Broadcasts message to room members |
+| **Interactive Terminal** | | | |
+| `terminal:init` | Client → Server | `{ cols, rows }` | Spawns interactive PTY shell process |
+| `terminal:data` | Both | `{ data }` | Bidirectional keystrokes and ANSI terminal output |
+| `terminal:resize` | Client → Server | `{ cols, rows }` | Dynamically resizes the PTY shell dimensions |
+| `terminal:clear` | Client → Server | — | Clears the terminal screen buffer |
+| `terminal:kill` | Client → Server | — | Terminates active PTY process |
+| **Code Runner** | | | |
+| `code:execute` | Client → Server | `{ fileName, content, language, stdin }` | Triggers sandboxed execution with live terminal output |
+| **Whiteboard Canvas** | | | |
+| `request-drawing` | Client → Server | — | Requests current canvas snapshot for a newly joined peer |
+| `sync-drawing` | Server → Client | `{ drawingData }` | Delivers initial whiteboard state to peer |
+| `drawing-update` | Both | `{ snapshot }` | Incremental vector drawing diff broadcast |
+| **WebRTC Calling** | | | |
+| `stream-ready` | Client → Server | — | Notifies server that local media stream is captured |
+| `webrtc-signal` | Both | `{ userID, signal }` | P2P WebRTC ICE candidate & SDP signaling |
+| `mic-state` | Both | `{ userID, micOn }` | Synchronizes microphone mute/unmute state |
+| `speaker-state` | Both | `{ userID, speakersOn }` | Synchronizes audio output toggle |
+| `camera-off` | Both | `{ userID }` | Synchronizes camera video feed disable |
 
 ---
 
-## 🛠️ Production Build
+## 🧪 Testing & CI/CD Pipeline
+
+### Multi-Client Collaboration Smoke Test
+
+CollabNet includes an automated integration test script simulating multiple simultaneous socket clients connecting to a room, synchronizing files, verifying duplicate username rejection, and tracking typing events:
 
 ```bash
-# Build frontend (output → client/dist/)
-cd client && npm run build
-
-# Build backend (output → server/dist/)
-cd ../server && npm run build
-
-# Start production server
-npm start
-
-# Or build both from root:
-npm run build
+# Ensure server is running on http://localhost:3000, then execute:
+node scripts/test-collaboration.mjs
 ```
+
+### Continuous Integration (GitHub Actions)
+
+Every commit and pull request to `main` is validated automatically via `.github/workflows/ci.yml`:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                   GitHub Actions Workflow                    │
+├──────────────────────┬──────────────────────┬────────────────┤
+│    Client Pipeline   │    Server Pipeline   │ Security Audit │
+├──────────────────────┼──────────────────────┼────────────────┤
+│ • npm ci             │ • npm ci             │ • npm audit    │
+│ • tsc --noEmit       │ • tsc -b (typecheck) │   (client &    │
+│ • vite build         │ • tsx server smoke   │    server)     │
+│                      │ • /healthz curl test │                │
+└──────────────────────┴──────────────────────┴────────────────┘
+```
+
+---
+
+## 🐳 Docker & Production Parity
+
+CollabNet provides a unified `docker-compose.yml` mirroring the production AWS deployment architecture locally:
+
+| Container | Base Image | Exposed Port | Role |
+|---|---|---|---|
+| `collab-redis` | `redis:7-alpine` | `6379` | Socket.IO multi-node Redis pub/sub adapter & session caching |
+| `collab-server` | Built from `server/Dockerfile` | `3000` | Express, Google OAuth, Gemini AI, and PTY terminal server |
+| `collab-client` | Built from `client/Dockerfile` | `8080 → 80` | React 19 SPA served via Nginx 1.27 with SPA fallback |
+
+### Starting the Stack
+
+```bash
+# Build images and launch containers in the background
+docker compose up --build -d
+
+# Check running services
+docker compose ps
+
+# Follow server logs
+docker compose logs -f server
+
+# Teardown containers
+docker compose down
+```
+
+### Container Security Highlights
+- **Server Dockerfile**: Multi-stage build (`deps` → `runner`), runs under an unprivileged user (`USER node`).
+- **Client Dockerfile**: Multi-stage build compiling TypeScript/Vite into static assets served via hardened Nginx.
+- **Health Checks**: Both services feature integrated `/healthz` container health check probes.
 
 ---
 
 ## ☁️ AWS Production Architecture
 
-The full production blueprint is documented in [`CollabNet-AWS-Plan.md`](CollabNet-AWS-Plan.md). The following is an executive summary.
+A full production migration roadmap is documented in [`CollabNet-AWS-Plan.md`](CollabNet-AWS-Plan.md). The production target architecture maps as follows:
 
-### Current vs. Production State
-
-| Subsystem | Local Implementation | Production Target |
+| Layer | Local Dev Architecture | AWS Target Architecture |
 |---|---|---|
-| **Frontend** | `npm run dev` (Vite) | **S3 + CloudFront** (Route 53 + ACM TLS) |
-| **Backend** | Single Express process, in-memory state | **ECS Fargate** (2+ tasks) behind an **ALB** with sticky sessions |
-| **State Sync** | Node.js RAM only | **ElastiCache Redis** (`@socket.io/redis-adapter`) |
-| **Database** | None (ephemeral) | **Aurora Serverless v2 (PostgreSQL)** |
-| **Code Execution** | Piston API HTTP | **Interactive EC2 Terminal Worker** (sandboxed Docker PTY) |
-| **Video / Voice** | WebRTC mesh (simple-peer) | **Coturn TURN Server** → long-term: LiveKit SFU |
-| **Auth** | Free-form username string | **Amazon Cognito** + JWT via `aws-jwt-verify` |
-| **AI Copilot** | Pollinations public API | **Amazon Bedrock** (Claude 3.5 Sonnet) |
-| **Observability** | `console.log` | **CloudWatch Logs & Alarms** + **AWS WAF** |
-
-### Monthly Cost Estimates
-
-| Layer | MVP / Solo Dev | Mid-Scale Production |
-|---|---|---|
-| **CloudFront + S3 (Frontend)** | ~$1 | ~$15 |
-| **ECS Fargate (Backend)** | ~$15 (1 task) | ~$60 (2–4 tasks) |
-| **Application Load Balancer** | ~$22 | ~$35 |
-| **ElastiCache Redis** | ~$13 (t4g.micro) | ~$52 (t4g.small, Multi-AZ) |
-| **Aurora Serverless v2** | ~$43 (0.5 ACU min) | ~$120 (1–4 ACUs) |
-| **EC2 Terminal Worker** | ~$15–$30 (t3.medium) | ~$60 (c6i.large) |
-| **Coturn TURN Server (EC2)** | ~$8 + egress | ~$25 + egress |
-| **NAT Solution** | ~$3.20 (fck-nat) | ~$65 (2x NAT Gateways) |
-| **Total Estimate** | **~$120–$145/month** | **~$430–$550/month** |
-
-### Phased Implementation Roadmap
-
-#### Phase 1 — Containerization & Single-Instance Deployment ✅
-- [x] Multi-stage `Dockerfile` for `server/` (non-root runner)
-- [x] Multi-stage `Dockerfile` for `client/` (Nginx SPA)
-- [x] `/healthz` + `/readyz` endpoints for ALB health checking
-- [x] Unified `docker-compose.yml` for local multi-service testing
-
-#### Phase 2 — Database Persistence & Cross-Node Sync
-- [ ] Deploy Aurora Serverless v2 PostgreSQL and run schema migration
-- [ ] Refactor `server.ts` in-memory arrays to Prisma/Drizzle DB queries
-- [ ] Connect `@socket.io/redis-adapter` with ElastiCache Redis
-- [ ] Stand up ALB with sticky sessions
-
-#### Phase 3 — Auth, Sandboxed Execution & TURN Infrastructure
-- [ ] Create Cognito User Pool, integrate `aws-jwt-verify` in Socket.IO middleware
-- [ ] Deploy EC2 Terminal Worker in private subnet with sandboxed PTY containers
-- [ ] Deploy Coturn on EC2 in Public Subnet with Elastic IP
-- [ ] Replace Pollinations AI with Amazon Bedrock streaming route
-
-#### Phase 4 — Production Hardening & Operations
-- [ ] AWS WAF with rate-limiting rules on CloudFront and ALB
-- [ ] CloudWatch alarms for p95 socket latency and 5xx errors
-- [ ] GitHub Actions OIDC deployment workflow (`deploy.yml`)
+| **Frontend Distribution** | Vite Dev Server (`localhost:5173`) | **Amazon S3 + CloudFront CDN** (TLS via ACM, Route 53 DNS) |
+| **Application Layer** | Single Node.js process | **Amazon ECS Fargate** (auto-scaled tasks) behind an **Application Load Balancer (ALB)** with sticky sessions |
+| **State & Pub/Sub** | In-memory Socket.IO state | **Amazon ElastiCache for Redis** (`@socket.io/redis-adapter`) |
+| **Database** | In-memory session store | **Amazon Aurora Serverless v2 (PostgreSQL)** |
+| **Code Execution** | Local Node/Python sandboxed runner | **Dedicated EC2 Execution Worker** in a private subnet running isolated Docker containers |
+| **Voice & Video** | WebRTC mesh (Simple-Peer) | **Coturn TURN Server** on EC2 (with future migration to LiveKit SFU) |
+| **AI Copilot** | Google Gemini Flash | **Amazon Bedrock (Claude 3.5 Sonnet)** or Google Gemini API |
+| **Security & WAF** | `helmet` + `express-rate-limit` | **AWS WAF** with rate-limiting and OWASP Core Rule Set |
 
 ---
 
 ## 📄 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🎯 Overview & Value Proposition
-
-**CollabNet** combines the density, power, and keyboard-centric efficiency of a modern desktop IDE with real-time browser collaboration:
-
-- **Real-Time Code Pairing**: Synchronized editing with remote collaborator cursors, selections, and presence.
-- **Embedded Interactive Terminal**: Full xterm.js terminal with multi-tab support, drag-to-resize, and bidirectional PTY streaming over WebSockets.
-- **Developer Workspace Dashboard**: Centralized command center featuring live system metrics, quick-start action cards, and persistent session history with 1-click room rejoining.
-- **File System Management**: Tree explorer with directory nesting guides, accessible custom modal dialogs (no browser alerts), inline F2 rename, and project ZIP download.
-- **Integrated Whiteboard**: Infinite collaborative drawing canvas powered by `tldraw` with live shape and stroke synchronization.
-- **P2P Audio & Video Calls**: Low-latency mesh WebRTC calling with device toggles, grid layout, and speaker state tracking.
-- **Multi-Language Execution & AI Copilot**: Run code in 80+ runtimes via Piston API or generate code using the AI Copilot.
-
----
-
-## 🎨 UI/UX Design System (UI/UX Pro Max)
-
-CollabNet follows a strict, developer-first design system generated using the **UI/UX Pro Max** skill:
-
-| Token Category | Value / Specification |
-|---|---|
-| **Theme & Aesthetic** | Dark Mode (OLED / Deep Slate) — high contrast, low eye fatigue |
-| **Density Dial** | `8/10` (Dense / Dashboard) — optimized for screen real estate |
-| **Motion Dial** | `3/10` (Subtle) — 150–200ms transitions, `prefers-reduced-motion` compliant |
-| **Typography (UI)** | **IBM Plex Sans** (300, 400, 500, 600, 700) |
-| **Typography (Code)** | **JetBrains Mono** / Space Mono (monospace code, terminal, breadcrumbs) |
-| **Primary Accent** | `#3B82F6` (Electric Blue / Active Focus) |
-| **Secondary Accent** | `#22C55E` (Emerald Green / Connected Status / Terminal) |
-| **Canvas Background** | `#0B0F17` (Deep Obsidian Canvas) |
-| **Surface Panels** | `#111827` (Sidebars & Toolbars) |
-| **Elevated Cards** | `#161F30` (Active Tabs, Modals, Dropdowns) |
-| **Border Tokens** | `#26334A` (Subtle container divisions) |
-| **Icon System** | Lucide SVG icons (`react-icons/lu`) — zero emojis used as UI icons |
-
-*Design system specifications are persisted in [`design-system/collabnet/MASTER.md`](design-system/collabnet/MASTER.md).*
-
----
-
-## 🏗️ Architecture
-
-```
-                               ┌────────────────────────────────────────┐
-                               │            Client (Browser)            │
-                               │  React 19 + TypeScript + Vite + Tailwind │
-                               └───────────────────┬────────────────────┘
-                                                   │
-                        ┌──────────────────────────┴──────────────────────────┐
-                        │ WebSocket (Socket.IO)              WebRTC (P2P Mesh)│
-                        ▼                                                     ▼
-        ┌──────────────────────────────┐                       ┌──────────────────────────────┐
-        │        Server (Node.js)      │                       │     Peer Collaborators       │
-        │ Express + Socket.IO + PTY    │                       │ Video / Voice Calling Stream │
-        └───────────────┬──────────────┘                       └──────────────────────────────┘
-                        │
-         ┌──────────────┴──────────────┐
-         ▼                             ▼
-┌──────────────────┐          ┌──────────────────┐
-│ Local / AWS PTY  │          │    Piston API    │
-│  Shell Worker    │          │ Code Executions  │
-└──────────────────┘          └──────────────────┘
-```
-
-### Client (Frontend)
-- **Framework**: React 19 with TypeScript
-- **Build Engine**: Vite
-- **Styling**: Tailwind CSS v4 + Vanilla CSS Design System
-- **Code Editor**: CodeMirror with language auto-detection, themes, and remote cursor highlighting
-- **Interactive Terminal**: `@xterm/xterm` with `@xterm/addon-fit`
-- **Whiteboard**: `tldraw`
-- **WebRTC**: Simple-Peer (mesh peer-to-peer audio/video)
-- **Sockets**: `socket.io-client`
-- **Routing**: React Router v7
-
-### Server (Backend)
-- **Runtime**: Node.js with TypeScript & TSX Watch
-- **Framework**: Express.js
-- **WebSockets**: Socket.IO Server
-- **PTY Management**: `node-pty` with native Windows/Linux shell spawning and child-process fallback
-
----
-
-## 📁 Repository Structure
-
-```
-CollabNet/
-├── client/                               # React 19 Frontend Application
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── call/                     # WebRTC call panel & video drawer
-│   │   │   │   ├── CallPanel.tsx
-│   │   │   │   └── CallsView.tsx
-│   │   │   ├── chats/                    # Real-time chat bubbles & input
-│   │   │   │   ├── ChatInput.tsx
-│   │   │   │   └── ChatList.tsx
-│   │   │   ├── common/                   # Shared UI primitives
-│   │   │   │   ├── Breadcrumbs.tsx       # IDE file breadcrumbs & status
-│   │   │   │   ├── EditorTopBar.tsx      # Top bar with Room ID & call button
-│   │   │   │   ├── Modal.tsx             # Accessible dialog primitive
-│   │   │   │   ├── Select.tsx            # Styled select component
-│   │   │   │   ├── StatusBar.tsx         # Bottom status bar & terminal toggle
-│   │   │   │   └── Users.tsx             # Collaborator cards with typing indicator
-│   │   │   ├── connection/               # Offline & connection failure views
-│   │   │   │   └── ConnectionStatusPage.tsx
-│   │   │   ├── dashboard/                # Home dashboard components
-│   │   │   │   └── RecentRooms.tsx       # LocalStorage session history & 1-click rejoin
-│   │   │   ├── drawing/                  # tldraw whiteboard integration
-│   │   │   │   └── DrawingEditor.tsx
-│   │   │   ├── editor/                   # CodeMirror editor & tabs
-│   │   │   │   ├── Editor.tsx            # Full-height collaborative editor
-│   │   │   │   ├── EditorComponent.tsx   # Workspace editor container
-│   │   │   │   ├── FileTab.tsx           # VS Code-style tabs with middle-click close
-│   │   │   │   └── collaborativeHighlighting.ts
-│   │   │   ├── files/                    # File tree & accessible modals
-│   │   │   │   ├── FileModals.tsx        # New File/Folder/Delete custom dialogs
-│   │   │   │   ├── FileStructureView.tsx # Tree explorer with guides & context menu
-│   │   │   │   └── RenameView.tsx        # Inline F2 rename input
-│   │   │   ├── forms/                    # Room join & create form card
-│   │   │   │   └── FormComponent.tsx
-│   │   │   ├── sidebar/                  # 48px IDE activity bar & views
-│   │   │   │   ├── Sidebar.tsx
-│   │   │   │   ├── CallPanelButton.tsx
-│   │   │   │   ├── tooltipStyles.ts
-│   │   │   │   └── sidebar-views/
-│   │   │   │       ├── ChatsView.tsx
-│   │   │   │       ├── CopilotView.tsx   # AI Code generation assistant
-│   │   │   │       ├── FilesView.tsx     # Project explorer & ZIP export
-│   │   │   │       ├── RunView.tsx       # Multi-language code execution
-│   │   │   │       ├── SettingsView.tsx  # Font & theme preferences
-│   │   │   │       ├── SidebarButton.tsx # Activity bar icon button
-│   │   │   │       └── UsersView.tsx     # Collaborators & invite actions
-│   │   │   ├── terminal/                 # Bottom interactive xterm.js terminal
-│   │   │   │   └── TerminalPanel.tsx     # Tabs, PTY streaming, drag resize, fullscreen
-│   │   │   ├── webcam-stream/            # WebRTC camera grid & device controls
-│   │   │   └── workspace/                # IDE layout assembler
-│   │   │       └── index.tsx
-│   │   ├── context/                      # React Context state providers
-│   │   │   ├── AppContext.tsx
-│   │   │   ├── ChatContext.tsx
-│   │   │   ├── CopilotContext.tsx
-│   │   │   ├── FileContext.tsx
-│   │   │   ├── RunCodeContext.tsx
-│   │   │   ├── SettingContext.tsx
-│   │   │   ├── SocketContext.tsx
-│   │   │   └── ViewContext.tsx
-│   │   ├── pages/
-│   │   │   ├── HomePage.tsx              # Developer workspace dashboard
-│   │   │   └── EditorPage.tsx            # Main IDE workspace route
-│   │   ├── styles/
-│   │   │   └── global.css                # Global CSS tokens & component utilities
-│   │   ├── index.css                     # Tailwind theme tokens & font definitions
-│   │   └── main.tsx
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── index.html
-│
-├── server/                               # Express + Socket.IO Backend
-│   ├── src/
-│   │   └── types/
-│   │       ├── server.ts                 # Main server & socket event handlers
-│   │       ├── terminalManager.ts        # PTY and child-process shell sessions
-│   │       ├── socket.ts                 # Socket event enums
-│   │       └── user.ts                   # User & presence types
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── design-system/                        # UI/UX Pro Max Design System
-│   └── collabnet/
-│       ├── MASTER.md                     # Source of truth design tokens
-│       └── pages/
-│           ├── dashboard.md              # Dashboard page overrides
-│           └── editor.md                 # Editor workspace overrides
-│
-├── docker-compose.yml                    # Optional Docker container stack
-└── README.md                             # Project documentation
-```
-
----
-
-## ⚡ Key Features
-
-### 1. Developer Workspace Dashboard (`/`)
-- **System Metrics**: Real-time server connectivity indicator.
-- **Quick Action Cards**: Create an instant coding room, jump to a whiteboard, or inspect the interactive shell.
-- **Recent Sessions History**: Preserves recently joined rooms in `localStorage` with user handles, timestamps, and 1-click rejoining.
-- **Validated Join Form**: Clean form controls with inline validation, automatic ID generation, and copy-to-clipboard actions.
-
-### 2. Code Editor & Tab Management
-- **VS Code-Style Tabs**: Active top border indicator, middle-click to close, and horizontal mousewheel scrolling.
-- **Breadcrumb Navigation**: Shows path hierarchy (`workspace > folder > file.js`), language badge, and real-time sync status.
-- **Collaborative Cursors**: Live remote user cursors and text selection highlights.
-- **Multi-Theme & Font Customization**: Supports JetBrains Mono, Fira Code, Space Mono, and customizable font sizing and themes.
-
-### 3. Bottom Interactive Shell Terminal
-- **xterm.js Integration**: Full terminal emulation with `@xterm/addon-fit`.
-- **Bidirectional PTY Streaming**: Real-time terminal I/O over Socket.IO (PowerShell on Windows, Bash on Linux/macOS).
-- **Multi-Tab Interface**: Switch between the interactive live shell and program execution output.
-- **Drag-to-Resize & Fullscreen**: Grab the top border to resize height (120px to 80vh) or toggle fullscreen mode.
-- **Keyboard Shortcut**: Press `Ctrl + \`` (or `Cmd + \``) anywhere in the IDE to toggle the terminal.
-
-### 4. File Explorer with Accessible Modals
-- **Accessible Dialogs**: Replaces browser `prompt()` and `confirm()` with custom accessible modals for New File, New Folder, and Delete Confirmation.
-- **Visual Indentation Guides**: Clear directory nesting lines, smooth chevron toggles, and file-type icons.
-- **F2 Inline Rename**: Press `F2` on any highlighted file or folder to rename with inline validation.
-- **Clamped Context Menu**: Right-click menu automatically bounds within viewport dimensions.
-
-### 5. Collaboration, Presence & Chat
-- **Presence Indicators**: Status rings for online/offline status and live typing indicators.
-- **Group Chat**: Speech bubbles with timestamps, word-wrapping, and auto-scroll.
-- **Invite & Share**: 1-click room URL copying and native Web Share API integration.
-- **WebRTC Audio & Video**: Peer-to-peer audio/video streaming with camera and microphone toggles.
-
-### 6. Infinite Collaborative Whiteboard
-- Powered by `tldraw` with live shape and stroke synchronization over Socket.IO.
-- Dedicated dark mode styling and 1-click toggle between coding and drawing modes.
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-| Shortcut | Action |
-|---|---|
-| `Ctrl + \`` / `Cmd + \`` | Toggle bottom terminal panel |
-| `F2` | Rename selected file or directory |
-| `Escape` | Close any open modal dialog or context menu |
-| `Middle Click` | Close editor tab |
-| `Enter` | Submit rename, modal form, or chat message |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher
-
-### 1. Clone & Install
-
-```bash
-# Clone repository
-git clone https://github.com/your-username/CollabNet.git
-cd CollabNet
-
-# Install server dependencies
-cd server
-npm install
-cd ..
-
-# Install client dependencies
-cd client
-npm install
-cd ..
-```
-
-### 2. Environment Configuration
-
-Create `client/.env`:
-```env
-VITE_SERVER_URL=http://localhost:3000
-```
-
-Create `server/.env`:
-```env
-PORT=3000
-NODE_ENV=development
-```
-
-### 3. Running in Development
-
-In terminal 1 (start backend server):
-```bash
-cd server
-npm run dev
-```
-*Server starts on `http://localhost:3000`.*
-
-In terminal 2 (start frontend dev server):
-```bash
-cd client
-npm run dev
-```
-*Client starts on `http://localhost:5173`.*
-
-Open your browser to `http://localhost:5173`, generate a Room ID, and enter your workspace.
-
----
-
-## 📡 Socket.IO Event Reference
-
-| Event Name | Direction | Payload | Description |
-|---|---|---|---|
-| `join-request` | Client → Server | `{ username, roomId }` | Request to join a room |
-| `join-accepted` | Server → Client | `{ user, users, fileStructure }` | Acknowledgment of joining |
-| `user-joined` | Server → Client | `{ user }` | Broadcast when peer joins |
-| `user-disconnected` | Server → Client | `{ socketId }` | Broadcast when peer disconnects |
-| `file-created` | Both | `{ parentDirId, newFile }` | File creation sync |
-| `file-updated` | Both | `{ fileId, newContent }` | Live code edit sync |
-| `file-renamed` | Both | `{ fileId, newName }` | File rename sync |
-| `file-deleted` | Both | `{ fileId }` | File deletion sync |
-| `cursor-move` | Both | `{ cursorPosition, selectionStart, selectionEnd }` | Remote cursor coordinates |
-| `typing-start` | Both | `{ cursorPosition }` | User typing activity trigger |
-| `typing-pause` | Both | — | Typing pause trigger |
-| `send-message` | Client → Server | `{ message }` | Chat message transmission |
-| `receive-message` | Server → Client | `{ message }` | Broadcast chat message |
-| `terminal:init` | Client → Server | `{ cols, rows }` | Initialize PTY shell session |
-| `terminal:data` | Both | `{ data }` | Terminal keystrokes & PTY output |
-| `terminal:resize` | Client → Server | `{ cols, rows }` | Terminal viewport dimension resize |
-| `terminal:clear` | Client → Server | — | Terminal buffer clear |
-| `request-drawing` | Client → Server | — | Request latest whiteboard snapshot |
-| `sync-drawing` | Server → Client | `{ drawingData }` | Initial whiteboard snapshot sync |
-| `drawing-update` | Both | `{ snapshot }` | Incremental whiteboard change diff |
-| `stream-ready` | Client → Server | — | WebRTC media stream ready |
-| `webrtc-signal` | Both | `{ userID, signal }` | WebRTC peer negotiation signal |
-| `mic-state` | Both | `{ userID, micOn }` | Microphone mute toggle sync |
-| `speaker-state` | Both | `{ userID, speakersOn }` | Audio output toggle sync |
-
----
-
-## 🛠️ Production Build & Verification
-
-```bash
-# Build frontend
-cd client
-npm run build
-# Output is generated into client/dist
-
-# Build backend
-cd ../server
-npm run build
-# Output is generated into server/dist
-
-# Start production server
-npm start
-```
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
