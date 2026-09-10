@@ -3,14 +3,13 @@ import { ACTIVITY_STATE } from "@/types/app"
 import EditorTopBar from "@/components/common/EditorTopBar"
 import StatusBar from "@/components/common/StatusBar"
 import TerminalPanel from "@/components/terminal/TerminalPanel"
-import { Suspense, lazy, useState, useEffect } from "react"
+import { Suspense, lazy, useEffect } from "react"
 
 const EditorComponent = lazy(() => import("../editor/EditorComponent"))
 const DrawingEditor = lazy(() => import("../drawing/DrawingEditor"))
 
 function WorkSpace() {
-    const { activityState } = useAppContext()
-    const [isTerminalOpen, setIsTerminalOpen] = useState(false)
+    const { activityState, isTerminalOpen, setIsTerminalOpen } = useAppContext()
 
     // Keyboard shortcut to toggle terminal: Ctrl+` (or Cmd+`)
     useEffect(() => {
@@ -22,7 +21,7 @@ function WorkSpace() {
         }
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [])
+    }, [setIsTerminalOpen])
 
     return (
         <div className="workspace flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-dark">

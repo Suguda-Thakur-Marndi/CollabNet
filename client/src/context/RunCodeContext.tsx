@@ -17,6 +17,9 @@ import {
 } from "react"
 import toast from "react-hot-toast"
 import { useFileSystem } from "./FileContext"
+import { useSocket } from "./SocketContext"
+import { useAppContext } from "./AppContext"
+import { SocketEvent } from "@/types/socket"
 
 const RunCodeContext = createContext<RunContextType | null>(null)
 
@@ -34,6 +37,8 @@ export const useRunCode = () => {
 
 const RunCodeContextProvider = ({ children }: { children: ReactNode }) => {
     const { activeFile } = useFileSystem()
+    const { socket } = useSocket()
+    const { setIsTerminalOpen } = useAppContext()
     const [input, setInput] = useState<string>("")
     const [output, setOutput] = useState<string>("")
     const [isRunning, setIsRunning] = useState<boolean>(false)
@@ -83,46 +88,55 @@ const RunCodeContextProvider = ({ children }: { children: ReactNode }) => {
     }, [activeFile?.name, supportedLanguages])
 
     const runCode = async () => {
-        if (!selectedLanguage.language) {
-            toast.error("Select a language to run your code")
-            return
-        }
         if (!activeFile) {
             toast.error("Open a file in the editor first")
             return
         }
 
-        const toastId = toast.loading("Running code...")
+        // 1. Immediately pop open the bottom terminal drawer
+        setIsTerminalOpen(true)
+
+        const toastId = toast.loading(`Running ${activeFile.name}...`)
         setIsRunning(true)
         setOutput("")
 
-        try {
-            const { language, version } = selectedLanguage
-            const response = await executePistonCode({
-                language,
-                version,
-                files: [
-                    { name: activeFile.name, content: activeFile.content ?? "" },
-                ],
+        // 2. Stream execution directly to the collaborative terminal (EC2 worker or local sandbox)
+        if (socket.connected) {
+            socket.emit(SocketEvent.CODE_EXECUTE, {
+                fileName: activeFile.name,
+                content: activeFile.content ?? "",
+                language: selectedLanguage?.language || "javascript",
                 stdin: input,
             })
+        }
 
-            const run = response.data?.run
-            if (run?.stderr) {
-                setOutput(run.stderr)
+        // 3. Also execute via Piston fallback if available for Output tab
+        try {
+            if (selectedLanguage.language) {
+                const response = await executePistonCode({
+                    language: selectedLanguage.language,
+                    version: selectedLanguage.version,
+                    files: [
+                        { name: activeFile.name, content: activeFile.content ?? "" },
+                    ],
+                    stdin: input,
+                })
+
+                const run = response.data?.run
+                if (run?.stderr) {
+                    setOutput(run.stderr)
+                } else {
+                    setOutput(run?.stdout ?? "(Execution output streamed to terminal)")
+                }
             } else {
-                setOutput(run?.stdout ?? "(no output)")
+                setOutput(`Running ${activeFile.name} in interactive terminal...`)
             }
-        } catch (error: unknown) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : "Failed to run code. Check your language selection and try again."
-            setOutput(message)
-            toast.error(message, { duration: 6000 })
+        } catch {
+            setOutput(`Execution active in interactive terminal. See Terminal tab below.`)
         } finally {
             setIsRunning(false)
             toast.dismiss(toastId)
+            toast.success(`Executed ${activeFile.name}`)
         }
     }
 

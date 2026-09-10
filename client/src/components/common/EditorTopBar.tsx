@@ -3,12 +3,14 @@ import { useSocket } from "@/context/SocketContext"
 import { useViews } from "@/context/ViewContext"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { USER_STATUS } from "@/types/user"
+import { useRunCode } from "@/context/RunCodeContext"
 import toast from "react-hot-toast"
-import { LuCopy, LuUsers, LuVideo, LuMenu } from "react-icons/lu"
+import { LuCopy, LuUsers, LuVideo, LuMenu, LuPlay } from "react-icons/lu"
 
 function EditorTopBar() {
     const { currentUser, users, status, callPanelOpen, toggleCallPanel } =
         useAppContext()
+    const { runCode, isRunning } = useRunCode()
     const { setIsSidebarOpen, isSidebarOpen } = useViews()
     const { isMobile } = useWindowDimensions()
     const { socket } = useSocket()
@@ -75,8 +77,29 @@ function EditorTopBar() {
                 </div>
             </div>
 
-            {/* Right side: Video call button + Collaborators pill */}
+            {/* Right side: Run Code button + Video call button + Collaborators pill */}
             <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={runCode}
+                    disabled={isRunning}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                    title="Run code in EC2 / Interactive Terminal"
+                    aria-label="Run Code"
+                >
+                    {isRunning ? (
+                        <>
+                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span>Running...</span>
+                        </>
+                    ) : (
+                        <>
+                            <LuPlay size={12} className="fill-current text-white" />
+                            <span>Run</span>
+                        </>
+                    )}
+                </button>
+
                 <button
                     type="button"
                     onClick={handleCallToggle}

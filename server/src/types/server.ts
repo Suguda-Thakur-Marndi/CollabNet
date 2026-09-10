@@ -18,6 +18,7 @@ import { authRouter } from "../auth/routes.js"
 import { aiRouter } from "../routes/ai.routes.js"
 import { authRateLimit, apiRateLimit } from "../middleware/rateLimit.js"
 import type { AuthUser } from "../auth/passport.js"
+import { executeCode } from "../services/execution/runner.service.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -529,6 +530,39 @@ io.on("connection", (socket: Socket) => {
       data: "\r\n\x1b[31m[Terminal session restarted]\x1b[0m\r\n",
     })
   })
+
+  // ── CODE EXECUTION (via EC2 Worker or Local Sandbox) ─────────────────────
+  socket.on(
+    SocketEvent.CODE_EXECUTE,
+    async ({
+      fileName,
+      content,
+      language,
+      stdin,
+    }: {
+      fileName: unknown
+      content: unknown
+      language?: unknown
+      stdin?: unknown
+    }) => {
+      const roomId = getRoomId(socket.id)
+      if (!roomId) return
+
+      const safeFileName = typeof fileName === "string" && fileName.trim().length > 0 ? fileName : "index.js"
+      const safeContent = typeof content === "string" ? content : ""
+      const safeLanguage = typeof language === "string" ? language : "javascript"
+      const safeStdin = typeof stdin === "string" ? stdin : ""
+
+      await executeCode({
+        roomId,
+        fileName: safeFileName,
+        content: safeContent,
+        language: safeLanguage,
+        stdin: safeStdin,
+        io,
+      })
+    }
+  )
 })
 
 // ── Server Listen ─────────────────────────────────────────────────────────────

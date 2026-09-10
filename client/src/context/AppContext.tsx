@@ -39,6 +39,7 @@ function AppContextProvider({ children }: { children: ReactNode }) {
     )
     const [drawingData, setDrawingData] = useState<DrawingData>(null)
     const [callPanelOpen, setCallPanelOpen] = useState(false)
+    const [isTerminalOpen, setIsTerminalOpen] = useState(false)
 
     const toggleCallPanel = useCallback(() => {
         setCallPanelOpen((open) => !open)
@@ -60,6 +61,8 @@ function AppContextProvider({ children }: { children: ReactNode }) {
                 callPanelOpen,
                 setCallPanelOpen,
                 toggleCallPanel,
+                isTerminalOpen,
+                setIsTerminalOpen,
             }}
         >
             {children}

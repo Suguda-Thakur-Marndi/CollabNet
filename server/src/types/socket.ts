@@ -38,6 +38,7 @@ enum SocketEvent {
 	TERMINAL_RESIZE = "terminal:resize",
 	TERMINAL_CLEAR = "terminal:clear",
 	TERMINAL_KILL = "terminal:kill",
+	CODE_EXECUTE = "code:execute",
 }
 
 interface SocketContext {

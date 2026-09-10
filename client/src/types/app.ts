@@ -24,6 +24,8 @@ interface AppContext {
     callPanelOpen: boolean
     setCallPanelOpen: (open: boolean) => void
     toggleCallPanel: () => void
+    isTerminalOpen: boolean
+    setIsTerminalOpen: (open: boolean | ((prev: boolean) => boolean)) => void
 }
 
 export { ACTIVITY_STATE }
