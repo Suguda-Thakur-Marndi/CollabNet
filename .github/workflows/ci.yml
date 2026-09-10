@@ -1,0 +1,89 @@
+name: CollabNet CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Client ──────────────────────────────────────────────────────────────────
+  client:
+    name: Client — Typecheck + Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BACKEND_URL: http://localhost:3000
+
+  # ── Server ──────────────────────────────────────────────────────────────────
+  server:
+    name: Server — Typecheck + Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Verify server starts (no credentials)
+        run: |
+          timeout 8 npx tsx src/types/server.ts &
+          sleep 5
+          curl -f http://localhost:3000/healthz || exit 1
+          curl -f http://localhost:3000/readyz || exit 1
+        env:
+          PORT: 3000
+          CLIENT_URL: http://localhost:5173
+          SESSION_SECRET: ci-test-secret-32-chars-minimum
+
+  # ── Security Audit ──────────────────────────────────────────────────────────
+  security:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit client
+        run: npm audit --audit-level=high
+        working-directory: client
+        continue-on-error: true # Report but don't block
+
+      - name: Audit server
+        run: npm audit --audit-level=high
+        working-directory: server
+        continue-on-error: true

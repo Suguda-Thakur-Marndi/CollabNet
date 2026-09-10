@@ -1,17 +1,14 @@
 import { ICopilotContext } from "@/types/copilot"
-import { createContext, ReactNode, useContext, useState } from "react"
+import { createContext, ReactNode, useContext, useState, useCallback } from "react"
 import toast from "react-hot-toast"
-import axiosInstance from "../api/pollinationsApi"
+import { streamCopilot } from "../api/aiApi"
 
 const CopilotContext = createContext<ICopilotContext | null>(null)
-
 
 export const useCopilot = () => {
     const context = useContext(CopilotContext)
     if (context === null) {
-        throw new Error(
-            "useCopilot must be used within a CopilotContextProvider",
-        )
+        throw new Error("useCopilot must be used within a CopilotContextProvider")
     }
     return context
 }
@@ -21,44 +18,46 @@ const CopilotContextProvider = ({ children }: { children: ReactNode }) => {
     const [output, setOutput] = useState<string>("")
     const [isRunning, setIsRunning] = useState<boolean>(false)
 
-    const generateCode = async () => {
-        try {
-            if (input.length === 0) {
-                toast.error("Please write a prompt")
-                return
-            }
-
-            toast.loading("Generating code...")
-            setIsRunning(true)
-            const response = await axiosInstance.post("/", {
-                messages: [
-                    {
-                        role: "system",
-                        content:
-                            "You are a code generator copilot for project named Code Sync. Generate code based on the given prompt without any explanation. Return only the code, formatted in Markdown using the appropriate language syntax (e.g., js for JavaScript, py for Python). Do not include any additional text or explanations. If you don't know the answer, respond with 'I don't know'.",
-                    },
-                    {
-                        role: "user",
-                        content: input,
-                    },
-                ],
-                model: "mistral",
-                private: true,
-            })
-            if (response.data) {
-                toast.success("Code generated successfully")
-                const code = response.data
-                if (code) setOutput(code)
-            }
-            setIsRunning(false)
-            toast.dismiss()
-        } catch (error) {
-            console.error(error)
-            setIsRunning(false)
-            toast.dismiss()
-            toast.error("Failed to generate the code")
+    const generateCode = useCallback(async () => {
+        if (input.trim().length === 0) {
+            toast.error("Please write a prompt")
+            return
         }
-    }
+
+        const toastId = toast.loading("Generating code with Gemini...")
+        setIsRunning(true)
+        setOutput("") // Clear previous output immediately
+
+        let accumulated = ""
+
+        await streamCopilot({
+            prompt: input,
+            onChunk: (text) => {
+                accumulated += text
+                setOutput(accumulated)
+            },
+            onDone: () => {
+                setIsRunning(false)
+                toast.dismiss(toastId)
+                toast.success("Code generated successfully")
+            },
+            onError: (message) => {
+                setIsRunning(false)
+                toast.dismiss(toastId)
+                console.error("[Copilot] Error:", message)
+
+                if (message.includes("AUTH_REQUIRED") || message.includes("Not authenticated")) {
+                    toast.error("Please sign in to use the AI Copilot")
+                } else if (message.includes("RATE_LIMITED")) {
+                    toast.error("Rate limit reached. Please wait a moment before trying again.")
+                } else if (message.includes("GEMINI_API_KEY")) {
+                    toast.error("AI service is not configured on this server")
+                } else {
+                    toast.error(`AI error: ${message}`)
+                }
+            },
+        })
+    }, [input])
 
     return (
         <CopilotContext.Provider

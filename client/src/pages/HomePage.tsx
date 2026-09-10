@@ -9,16 +9,21 @@ import {
     LuActivity,
     LuGithub,
     LuSparkles,
+    LuLogIn,
+    LuLogOut,
 } from "react-icons/lu"
 import { v4 as uuidv4 } from "uuid"
+import { useAuth } from "@/hooks/useAuth"
 
 function HomePage() {
     const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>()
     const [selectedUsername, setSelectedUsername] = useState<string | undefined>()
+    const { user, loading, login, logout } = useAuth()
 
     const handleSelectRecent = (roomId: string, username?: string) => {
         setSelectedRoomId(roomId)
-        setSelectedUsername(username)
+        // Pre-fill display name from Google account if available
+        setSelectedUsername(username ?? user?.displayName)
     }
 
     const handleQuickAction = (mode: "code" | "draw") => {
@@ -37,7 +42,7 @@ function HomePage() {
                     </span>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-muted">
+                <div className="flex items-center gap-3 text-xs text-muted">
                     <div className="hidden sm:flex items-center gap-1.5 text-emerald-400">
                         <span className="h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30 animate-pulse" />
                         <span className="font-mono text-[11px]">System Online</span>
@@ -52,6 +57,40 @@ function HomePage() {
                         <LuGithub size={14} />
                         <span className="hidden md:inline">GitHub</span>
                     </a>
+
+                    {/* Google Auth Button */}
+                    {!loading && (
+                        user ? (
+                            <div className="flex items-center gap-2">
+                                {user.avatarUrl && (
+                                    <img
+                                        src={user.avatarUrl}
+                                        alt={user.displayName}
+                                        className="h-6 w-6 rounded-full ring-1 ring-primary/40"
+                                    />
+                                )}
+                                <span className="hidden sm:inline text-[11px] text-slate-300 max-w-[120px] truncate">
+                                    {user.displayName}
+                                </span>
+                                <button
+                                    onClick={logout}
+                                    className="btn-ghost flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted hover:text-red-400"
+                                    title="Sign out"
+                                >
+                                    <LuLogOut size={14} />
+                                    <span className="hidden md:inline">Sign out</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={login}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/15 border border-primary/30 text-primary text-xs font-medium hover:bg-primary/25 transition-colors"
+                            >
+                                <LuLogIn size={13} />
+                                <span>Sign in with Google</span>
+                            </button>
+                        )
+                    )}
                 </div>
             </header>
 

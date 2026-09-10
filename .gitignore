@@ -43,3 +43,13 @@ venv/
 ENV/
 *.egg-info/
 
+# AWS Key Pairs & Certificates — NEVER commit private keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+id_rsa
+id_ed25519
+*.ppk

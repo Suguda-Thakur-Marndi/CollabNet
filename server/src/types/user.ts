@@ -13,6 +13,7 @@ interface User {
 	socketId: string
 	selectionStart?: number
 	selectionEnd?: number
+	avatarUrl?: string // Google OAuth avatar
 }
 
 export { USER_CONNECTION_STATUS }
