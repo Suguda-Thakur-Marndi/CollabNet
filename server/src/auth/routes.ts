@@ -42,13 +42,15 @@ authRouter.get("/dev-login", (req: Request, res: Response) => {
     lastLoginAt: new Date(),
   }
   userStore.set(devUser.id, devUser)
+  const getClientRedirectUrl = () => (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim()
+
   req.login(devUser, (err) => {
     if (err) {
       console.error("[Auth] Dev login error:", err)
-      res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/?auth_error=true`)
+      res.redirect(`${getClientRedirectUrl()}/?auth_error=true`)
       return
     }
-    res.redirect(process.env.CLIENT_URL || "http://localhost:5173")
+    res.redirect(getClientRedirectUrl())
   })
 })
 
@@ -58,13 +60,17 @@ authRouter.get("/dev-login", (req: Request, res: Response) => {
  */
 authRouter.get(
   "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: `${process.env.CLIENT_URL || "http://localhost:5173"}/?auth_error=true`,
-    session: true,
-  }),
+  (req, res, next) => {
+    const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim()
+    passport.authenticate("google", {
+      failureRedirect: `${clientUrl}/?auth_error=true`,
+      session: true,
+    })(req, res, next)
+  },
   (_req: Request, res: Response) => {
+    const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim()
     // On success, redirect to the client app
-    res.redirect(process.env.CLIENT_URL || "http://localhost:5173")
+    res.redirect(clientUrl)
   }
 )
 

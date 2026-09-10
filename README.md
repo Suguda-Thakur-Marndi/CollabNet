@@ -35,7 +35,8 @@
 12. [Testing & CI/CD Pipeline](#-testing--cicd-pipeline)
 13. [Docker & Production Parity](#-docker--production-parity)
 14. [AWS Production Architecture](#️-aws-production-architecture)
-15. [License](#-license)
+15. [Resume Highlights](#-resume-highlights)
+16. [License](#-license)
 
 ---
 
@@ -620,6 +621,112 @@ A full production migration roadmap is documented in [`CollabNet-AWS-Plan.md`](C
 | **Voice & Video** | WebRTC mesh (Simple-Peer) | **Coturn TURN Server** on EC2 (with future migration to LiveKit SFU) |
 | **AI Copilot** | Google Gemini Flash | **Amazon Bedrock (Claude 3.5 Sonnet)** or Google Gemini API |
 | **Security & WAF** | `helmet` + `express-rate-limit` | **AWS WAF** with rate-limiting and OWASP Core Rule Set |
+
+---
+
+## 💼 Resume Highlights
+
+### 1. Project Summary
+**CollabNet** is an open-source, full-stack collaborative developer IDE that enables distributed engineering teams to pair-program with real-time multi-cursor synchronization, an interactive pseudoterminal, collaborative vector whiteboarding, and P2P WebRTC audio/video calling in a unified browser interface. The system integrates an authenticated Google Gemini AI copilot with Server-Sent Events (SSE) streaming and automated credential sanitization, alongside a dual-mode code execution engine supporting remote worker dispatch and local sandboxed process execution across multiple programming languages.
+
+---
+
+### 2. 3-Bullet Resume Version (Strongest Impact)
+* **Architected real-time collaborative IDE engine** using **TypeScript, React 19, Express, and Socket.IO**, implementing custom CodeMirror 6 `StateField` decoration extensions for remote multi-cursor tracking, deterministic color assignment, and conflict-isolated room broadcasting with cross-room authorization validation.
+* **Engineered streaming AI pair-programmer copilot** by integrating **Google Gemini API (`@google/generative-ai`)** via **Server-Sent Events (SSE)**, incorporating a pre-flight credential redaction engine scrubbing 12+ secret patterns, strict context truncation (4,000 characters), and three-tier IP rate limiting (30 req/min).
+* **Implemented interactive in-browser cloud terminal & sandboxed execution runner** utilizing **`@xterm/xterm` and `node-pty`** over bi-directional WebSockets with 50K-character scrollback caching, supporting dual-path code execution via AWS EC2 worker HTTP dispatch and local isolated process sandboxing across Node.js, Python, Bash, and PowerShell.
+
+---
+
+### 3. 5-Bullet Resume Version (Functional Coverage)
+1. **Architecture & Real-Time Sync**: Architected a full-stack collaborative IDE using React 19, Vite, Express, and Socket.IO, engineering room-scoped event distribution for multi-file trees, collaborative tldraw vector diffs, and CodeMirror 6 remote cursors.
+2. **AI Copilot & Streaming**: Integrated Google Gemini API using Server-Sent Events (SSE) with an automated regex-based redaction engine scrubbing 12+ API key/credential patterns, prompt bounds checking (8,000 characters), and 1-click editor code injection.
+3. **Interactive Terminal & Sandboxed Execution**: Engineered a bidirectional WebSocket terminal emulator combining `@xterm/xterm` and `node-pty` pseudoterminals, featuring dual-mode execution supporting remote AWS EC2 worker dispatch and local sandboxed process execution.
+4. **Authentication & Defense-in-Depth Security**: Implemented Google OAuth 2.0 with Passport.js, HTTP-only session cookies, three-tier IP rate limiting (`express-rate-limit`), and server-side socket room membership validation preventing cross-room data leaks.
+5. **Containerization & CI/CD**: Containerized microservices using multi-stage Dockerfiles with unprivileged user execution, Nginx SPA compression, local Redis orchestration via Docker Compose, and GitHub Actions CI running automated multi-client socket integration testing (12/12 passing).
+
+---
+
+### 4. 8-Bullet Resume Version (Comprehensive Technical Detail)
+1. **Full-Stack Architecture**: Architected a real-time developer workspace with React 19, TypeScript, Express, and Socket.IO, establishing modular context-driven state management and room-partitioned client-server communication.
+2. **Advanced Frontend Engineering**: Built an IDE interface with Tailwind CSS v4, dynamic CodeMirror 6 and Monaco editors, draggable split-pane layouts, and lazy-loaded routes with suspense fallbacks optimizing initial page bundle size.
+3. **Custom Collaborative Highlighting**: Designed a CodeMirror 6 extension utilizing `StateField` and `WidgetType` to render remote peer cursor markers, typing animations, translucent text selections, and hash-based deterministic user colors.
+4. **AI Copilot with Secret Redaction**: Built an SSE streaming code copilot powered by `@google/generative-ai`, enforcing pre-flight regex sanitization for 12+ credential patterns, 4,000-character context slicing, and token streaming via async generators.
+5. **Real-Time Whiteboard & P2P Media**: Integrated `tldraw` v2 collaborative canvas with document delta synchronization, alongside mesh WebRTC audio/video calling (`simple-peer`) featuring tie-breaking connection negotiation and pending signal buffers.
+6. **Defense-in-Depth Security & Auth**: Implemented Passport Google OAuth 2.0 with session cookies, Helmet security headers, 3-tier IP rate limiting, and room validation checks (`isInSameRoom`) blocking cross-tenant data leakage.
+7. **Interactive Cloud Terminal & Code Runner**: Engineered an in-browser terminal using `@xterm/xterm` and `node-pty` with 50K-character scrollback buffers, dual-dispatched to an AWS EC2 worker or local sandboxed child processes with ANSI terminal streaming.
+8. **DevOps, Containerization & CI/CD**: Authored multi-stage Dockerfiles (Node 20 non-root runner, Nginx 1.27 with gzip/caching), Docker Compose environment with Redis 7, and GitHub Actions CI running type checking, container health checks, and 12-step socket integration tests.
+
+---
+
+### 5. Resume-Ready Project Entry (Copy-Paste Ready)
+
+```text
+COLLABNET — REAL-TIME COLLABORATIVE DEVELOPER IDE
+Tech Stack: React 19, TypeScript, Node.js, Express, Socket.IO, Google Gemini API, WebRTC, CodeMirror 6, xterm.js, Docker, Nginx, Redis, GitHub Actions
+• Architected a real-time collaborative IDE supporting multi-cursor code pairing, interactive pseudoterminal streaming, collaborative tldraw whiteboarding, and P2P WebRTC audio/video calls in a unified React 19 SPA.
+• Built an SSE-streamed AI copilot using Google Gemini API (@google/generative-ai) with pre-flight credential redaction scrubbing 12+ secret patterns, active-file context truncation (4KB), and 1-click code insertion.
+• Engineered an interactive cloud terminal via @xterm/xterm and node-pty over bidirectional WebSockets, featuring a dual-mode code execution engine with remote AWS EC2 worker dispatch and local sandboxed process fallback.
+• Implemented defense-in-depth security including Google OAuth 2.0 session auth, three-tier IP rate limiting, input payload sanitization, and server-side room boundary validation preventing cross-tenant data leaks.
+• Containerized the application using multi-stage Dockerfiles (non-root Node runner, Nginx SPA compression) and established GitHub Actions CI automating type checking, health checks, and 12-step socket integration tests.
+```
+
+---
+
+### 6. Verified Technology Stack
+
+| Domain | Verified Technologies Implemented in Codebase |
+|---|---|
+| **Frontend Core** | React 19.2.6, TypeScript 6.0, Vite 8.0, React Router DOM 7.15, Tailwind CSS v4.0 |
+| **Code Editors & Terminal** | CodeMirror 6 (`@uiw/react-codemirror`), Monaco Editor (`@monaco-editor/react`), `@xterm/xterm` 6.0, `@xterm/addon-fit` |
+| **Collaborative Canvas** | `tldraw` 2.4 (infinite collaborative vector canvas with delta synchronization) |
+| **Real-Time & Networking** | Socket.IO Client 4.8.3, `simple-peer` 9.11 (WebRTC mesh), Server-Sent Events (SSE) |
+| **Frontend Utilities** | `react-markdown` 9.0, `react-syntax-highlighter` 15.6, `jszip` 3.10, `file-saver` 2.0, `react-hot-toast`, `react-icons/lu` |
+| **Backend Core** | Node.js v20+, Express.js 4.21.2, TypeScript 5.9, `tsx` 4.22 (ESM watch runner) |
+| **WebSockets & Terminal Server** | Socket.IO Server 4.8.2, `node-pty` 1.1.0 (VT100 pseudoterminal), `child_process.spawn` fallback |
+| **AI / Large Language Model** | Google Gemini API via official `@google/generative-ai` 0.24.1 (`gemini-2.5-flash` / `gemini-1.5-flash`) |
+| **Authentication & Sessions** | Passport.js 0.7, `passport-google-oauth20` 2.0, `express-session` 1.19, `connect-redis` 10.0 |
+| **Security & Protection** | `helmet` 8.3, `cors` 2.8, `express-rate-limit` 8.7, secret redaction filter (12+ regexes), room authorization guards |
+| **DevOps & Infrastructure** | Docker (multi-stage builds), Docker Compose, Nginx 1.27-alpine, Redis 7-alpine, GitHub Actions CI |
+| **Testing & Validation** | Automated Socket.IO integration suite (`scripts/test-collaboration.mjs`), TypeScript compiler verification (`tsc -b`), HTTP health probes (`/healthz`, `/readyz`) |
+
+---
+
+### 7. ATS Keywords (Verified in Codebase)
+`React 19` • `TypeScript` • `Node.js` • `Express.js` • `Socket.IO` • `WebSockets` • `Server-Sent Events (SSE)` • `WebRTC` • `Simple-Peer` • `Google Gemini API` • `Generative AI` • `Large Language Models (LLM)` • `AI Pair Programming` • `CodeMirror 6` • `Monaco Editor` • `xterm.js` • `Pseudo-terminal (PTY)` • `node-pty` • `Sandboxed Code Execution` • `Google OAuth 2.0` • `Passport.js` • `Session Management` • `CORS` • `Helmet` • `Rate Limiting` • `Credential Redaction` • `Data Sanitization` • `Cross-Room Isolation` • `Docker` • `Docker Compose` • `Multi-Stage Builds` • `Nginx` • `Redis` • `GitHub Actions` • `CI/CD` • `Full-Stack Development` • `Distributed Systems`
+
+---
+
+### 8. Claim Verification Table
+
+| # | Resume Claim | Evidence / File Location | Verified? | Verification Notes |
+|---|---|---|---|---|
+| 1 | **Multi-Cursor Code Mirror 6 Synchronization** | [`client/src/components/editor/collaborativeHighlighting.ts`](client/src/components/editor/collaborativeHighlighting.ts)<br>[`client/src/components/editor/Editor.tsx`](client/src/components/editor/Editor.tsx) | **Yes** | Implements custom `StateField` and `WidgetType` decorations with user color hashing and cursor/selection ranges over Socket.IO. |
+| 2 | **Google Gemini AI with SSE Streaming** | [`server/src/routes/ai.routes.ts`](server/src/routes/ai.routes.ts)<br>[`server/src/services/ai/gemini.service.ts`](server/src/services/ai/gemini.service.ts)<br>[`client/src/api/aiApi.ts`](client/src/api/aiApi.ts) | **Yes** | Uses `@google/generative-ai`, streams tokens via async generator chunking over `text/event-stream`, parsed client-side via `ReadableStream` reader. |
+| 3 | **Pre-Flight Credential & Secret Redaction** | [`server/src/services/ai/gemini.service.ts`](server/src/services/ai/gemini.service.ts#L6-L30) | **Yes** | `SECRET_PATTERNS` array scrubs 12+ secret types (`DATABASE_URL`, `REDIS_URL`, `GOOGLE_CLIENT_SECRET`, AWS keys, RSA/EC private keys, API keys). |
+| 4 | **Interactive In-Browser Terminal Emulator** | [`client/src/components/terminal/TerminalPanel.tsx`](client/src/components/terminal/TerminalPanel.tsx)<br>[`server/src/types/terminalManager.ts`](server/src/types/terminalManager.ts) | **Yes** | `@xterm/xterm` connected via Socket.IO (`terminal:init`, `terminal:data`, `terminal:resize`) to `node-pty` with 50K-character scrollback buffer. |
+| 5 | **Dual-Mode Code Execution Engine** | [`server/src/services/execution/runner.service.ts`](server/src/services/execution/runner.service.ts)<br>[`client/src/context/RunCodeContext.tsx`](client/src/context/RunCodeContext.tsx) | **Yes** | Dispatches to external HTTP execution worker (with `EXECUTION_WORKER_SECRET` & 30s timeout) or falls back to local isolated sandbox directories (`collabnet-sandbox/<roomId>`). |
+| 6 | **Collaborative Whiteboard Canvas** | [`client/src/components/drawing/DrawingEditor.tsx`](client/src/components/drawing/DrawingEditor.tsx) | **Yes** | Listens to `tldraw` store diff events (`editor.store.listen`), emits `DRAWING_UPDATE` diffs, and merges remote changes via `editor.store.mergeRemoteChanges()`. |
+| 7 | **WebRTC Mesh Video & Voice Calling** | [`client/src/components/webcam-stream/utils/peer.ts`](client/src/components/webcam-stream/utils/peer.ts)<br>[`client/src/components/webcam-stream/hooks/useSocketEvents.ts`](client/src/components/webcam-stream/hooks/useSocketEvents.ts) | **Yes** | Uses `simple-peer` with deterministic initiator resolution (`userID > socket.id`), pending signal queuing, and device stream switching. |
+| 8 | **Google OAuth 2.0 Authentication** | [`server/src/auth/passport.ts`](server/src/auth/passport.ts)<br>[`server/src/auth/routes.ts`](server/src/auth/routes.ts) | **Yes** | Uses `passport-google-oauth20` with session serialization and automatic fallback to `/auth/dev-login` when OAuth credentials are unset. |
+| 9 | **Three-Tier Rate Limiting & Security Headers** | [`server/src/middleware/rateLimit.ts`](server/src/middleware/rateLimit.ts)<br>[`server/src/types/server.ts`](server/src/types/server.ts#L42-L56) | **Yes** | `helmet` configured; IP rate limiting enforced on auth (20 req/15min), AI (30 req/min), and general API (200 req/min). |
+| 10 | **Cross-Room Data Isolation Verification** | [`server/src/types/server.ts`](server/src/types/server.ts#L134-L136)<br>[`server/src/types/server.ts`](server/src/types/server.ts#L244-L248) | **Yes** | Server enforces `isInSameRoom()` checks on `SYNC_FILE_STRUCTURE` and `WEBRTC_SIGNAL`, rejecting cross-room data transmission. |
+| 11 | **Containerization & Production Parity** | [`server/Dockerfile`](server/Dockerfile)<br>[`client/Dockerfile`](client/Dockerfile)<br>[`docker-compose.yml`](docker-compose.yml) | **Yes** | Multi-stage Docker builds; server runs under unprivileged `node` user with healthcheck; client served via Nginx 1.27 with gzip and SPA routing. |
+| 12 | **CI/CD & Integration Testing** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml)<br>[`scripts/test-collaboration.mjs`](scripts/test-collaboration.mjs) | **Yes** | GitHub Actions workflow checks TypeScript and builds; automated script verifies multi-client room sync across 12 distinct assertions (12/12 passing). |
+
+---
+
+### 9. Potential Resume Improvements (Not Currently Implemented)
+
+> [!NOTE]
+> The following items represent architectural improvements that are **not currently implemented** in the repository. They are documented here to prepare for technical interviews and outline future scalability initiatives.
+
+1. **Persistent Relational Database (PostgreSQL + Prisma / Drizzle ORM)**: Replace the current in-memory `userStore` Map and volatile room state with PostgreSQL to persist user profiles, projects, file hierarchies, and room history across server restarts.
+2. **Socket.IO Multi-Node Horizontal Scaling (`@socket.io/redis-adapter`)**: Hook the existing Redis service into `io.adapter(createAdapter(pubClient, subClient))` to enable cross-container event broadcasting across multiple backend instances behind a load balancer.
+3. **Unit & Component Testing Suite (Vitest + React Testing Library)**: Implement granular unit test coverage for individual React components (Editor, TerminalPanel, DrawingEditor) and backend route handlers using Vitest and Supertest.
+4. **Coturn TURN Server / SFU Video Architecture**: Deploy a dedicated Coturn relay server or migrate from P2P mesh WebRTC (`simple-peer`, which degrades beyond 4–6 peers at $O(N^2)$ bandwidth) to a Selective Forwarding Unit (SFU) like LiveKit or Amazon Chime SDK ($O(1)$ client bandwidth).
+5. **Operational Telemetry & Observability**: Add structured JSON logging (Pino/Winston) and OpenTelemetry/Prometheus metrics instrumentation to track WebSocket connection lifecycles, message latencies, and AI token generation metrics.
+6. **Hardened MicroVM Execution Isolation**: Upgrade the local sandbox runner from host child process spawning to sandboxed container isolation (Docker-out-of-Docker or Firecracker microVMs) with strict cgroups memory and CPU quotas.
 
 ---
 

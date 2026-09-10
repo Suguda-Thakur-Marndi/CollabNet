@@ -1,9 +1,11 @@
 # syntax=docker/dockerfile:1
 FROM node:20-alpine AS base
+RUN apk add --no-cache bash libstdc++
 WORKDIR /app
 
 # Dependencies stage
 FROM base AS deps
+RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 RUN npm ci
 
@@ -17,6 +19,7 @@ ENV PORT=3000
 USER node
 
 COPY --chown=node:node package*.json ./
+COPY --chown=node:node tsconfig*.json ./
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
 COPY --chown=node:node src/ ./src/
 COPY --chown=node:node public/ ./public/

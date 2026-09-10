@@ -26,7 +26,8 @@ const __dirname = path.dirname(__filename)
 dotenv.config()
 
 const PORT = process.env.PORT || 3000
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173"
+const rawClientUrl = process.env.CLIENT_URL || "http://localhost:5173,http://localhost:8080"
+const allowedOrigins = rawClientUrl.split(",").map((s) => s.trim()).filter(Boolean)
 const SESSION_SECRET = process.env.SESSION_SECRET || "INSECURE_FALLBACK_CHANGE_ME"
 const NODE_ENV = process.env.NODE_ENV || "development"
 
@@ -46,10 +47,16 @@ app.use(
   })
 )
 
-// CORS — only allow the configured client origin
+// CORS — only allow the configured client origins (supports array & development/docker parity)
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error(`CORS policy blocked access from origin ${origin}`))
+      }
+    },
     credentials: true, // Required for session cookies
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
@@ -102,7 +109,7 @@ app.get("/", (_req: Request, res: Response) => {
 const server = http.createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
   },
   maxHttpBufferSize: 5e6, // 5MB max per message (was 100MB — reduced)
@@ -568,7 +575,7 @@ io.on("connection", (socket: Socket) => {
 // ── Server Listen ─────────────────────────────────────────────────────────────
 server.listen(PORT, () => {
   console.log(`[Server] Listening on port ${PORT}`)
-  console.log(`[Server] CORS origin: ${CLIENT_URL}`)
+  console.log(`[Server] CORS origins: ${allowedOrigins.join(", ")}`)
   console.log(`[Server] Auth: ${process.env.GOOGLE_CLIENT_ID ? "Google OAuth configured" : "Google OAuth NOT configured (set GOOGLE_CLIENT_ID)"}`)
   console.log(`[Server] Gemini AI: ${process.env.GEMINI_API_KEY ? "configured" : "NOT configured (set GEMINI_API_KEY)"}`)
 })
